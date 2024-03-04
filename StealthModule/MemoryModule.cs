@@ -49,13 +49,13 @@ namespace StealthModule
         public bool Disposed { get; private set; }
         public bool IsDll { get; private set; }
 
-        IntPtr pCode = IntPtr.Zero;
-        IntPtr pNTHeaders = IntPtr.Zero;
-        IntPtr[] ImportModules;
-        bool _initialized;
-        DllEntryDelegate _dllEntry;
-        ExeEntryDelegate _exeEntry;
-        bool _isRelocated;
+        private IntPtr moduleBase = IntPtr.Zero;
+        private IntPtr ntHeader = IntPtr.Zero;
+        private IntPtr[] importedModuleHandles;
+        private bool isInitialized;
+        private DllEntryDelegate dllEntry;
+        private ExeEntryDelegate exeEntry;
+        private bool isRelocated;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
@@ -96,6 +96,7 @@ namespace StealthModule
                 throw new ArgumentException(typeof(TDelegate).Name + " is not a delegate");
             if (!(Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), typeof(TDelegate)) is TDelegate res))
                 throw new ModuleException("Unable to get managed delegate");
+
             return res;
         }
 
@@ -111,9 +112,11 @@ namespace StealthModule
                 throw new ArgumentNullException(nameof(delegateType));
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
+
             var res = Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), delegateType);
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
+
             return res;
         }
 
@@ -125,32 +128,33 @@ namespace StealthModule
                 throw new ArgumentException(nameof(funcName));
             if (!IsDll)
                 throw new InvalidOperationException("Loaded Module is not a DLL");
-            if (!_initialized)
+            if (!isInitialized)
                 throw new InvalidOperationException("Dll is not initialized");
 
-            var pDirectory = pNTHeaders.Add(Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable));
+            var pDirectory = ntHeader.Add(Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable));
             var Directory = pDirectory.Read<IMAGE_DATA_DIRECTORY>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");
 
-            var pExports = pCode.Add(Directory.VirtualAddress);
+            var pExports = moduleBase.Add(Directory.VirtualAddress);
             var Exports = pExports.Read<IMAGE_EXPORT_DIRECTORY>();
             if (Exports.NumberOfFunctions == 0 || Exports.NumberOfNames == 0)
                 throw new ModuleException("Dll exports no functions");
 
-            var pNameRef = pCode.Add(Exports.AddressOfNames);
-            var pOrdinal = pCode.Add(Exports.AddressOfNameOrdinals);
+            var pNameRef = moduleBase.Add(Exports.AddressOfNames);
+            var pOrdinal = moduleBase.Add(Exports.AddressOfNameOrdinals);
             for (var i = 0; i < Exports.NumberOfNames; i++, pNameRef = pNameRef.Add(sizeof(uint)), pOrdinal = pOrdinal.Add(sizeof(ushort)))
             {
                 var NameRef = pNameRef.Read<uint>();
                 var Ordinal = pOrdinal.Read<ushort>();
-                var curFuncName = Marshal.PtrToStringAnsi(pCode.Add(NameRef));
+                var curFuncName = Marshal.PtrToStringAnsi(moduleBase.Add(NameRef));
                 if (curFuncName == funcName)
                 {
                     if (Ordinal > Exports.NumberOfFunctions)
                         throw new ModuleException("Invalid function ordinal");
-                    var pAddressOfFunction = pCode.Add(Exports.AddressOfFunctions + (uint)(Ordinal * 4));
-                    return pCode.Add(pAddressOfFunction.Read<uint>());
+
+                    var pAddressOfFunction = moduleBase.Add(Exports.AddressOfFunctions + (uint)(Ordinal * 4));
+                    return moduleBase.Add(pAddressOfFunction.Read<uint>());
                 }
             }
 
@@ -165,9 +169,11 @@ namespace StealthModule
         {
             if (Disposed)
                 throw new ObjectDisposedException(nameof(MemoryModule));
-            if (IsDll || _exeEntry == null || !_isRelocated)
+
+            if (IsDll || exeEntry == null || !isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
-            return _exeEntry();
+
+            return exeEntry();
         }
 
         /// <summary>
@@ -190,26 +196,26 @@ namespace StealthModule
 
         public void Dispose()
         {
-            if (_initialized)
+            if (isInitialized)
             {
-                if (_dllEntry != null)
-                    _dllEntry.Invoke(pCode, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
-                _initialized = false;
+                if (dllEntry != null)
+                    dllEntry.Invoke(moduleBase, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                isInitialized = false;
             }
 
-            if (ImportModules != null)
+            if (importedModuleHandles != null)
             {
-                foreach (var m in ImportModules)
+                foreach (var m in importedModuleHandles)
                     if (!m.IsInvalidHandle())
                         NativeMethods.FreeLibrary(m);
-                ImportModules = null;
+                importedModuleHandles = null;
             }
 
-            if (pCode != IntPtr.Zero)
+            if (moduleBase != IntPtr.Zero)
             {
-                NativeMethods.VirtualFree(pCode, IntPtr.Zero, AllocationType.RELEASE);
-                pCode = IntPtr.Zero;
-                pNTHeaders = IntPtr.Zero;
+                NativeMethods.VirtualFree(moduleBase, IntPtr.Zero, AllocationType.RELEASE);
+                moduleBase = IntPtr.Zero;
+                ntHeader = IntPtr.Zero;
             }
 
             Disposed = true;
@@ -229,16 +235,5 @@ namespace StealthModule
             { PageProtection.EXECUTE_READ, PageProtection.EXECUTE_READWRITE }
         }
         };
-
-
-        static T BytesReadStructAt<T>(byte[] buf, int offset)
-        {
-            var size = Marshal.SizeOf(typeof(T));
-            var ptr = Marshal.AllocHGlobal(size);
-            Marshal.Copy(buf, offset, ptr, size);
-            var res = (T)Marshal.PtrToStructure(ptr, typeof(T));
-            Marshal.FreeHGlobal(ptr);
-            return res;
-        }
     }
 }

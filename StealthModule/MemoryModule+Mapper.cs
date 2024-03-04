@@ -50,13 +50,13 @@ namespace StealthModule
         {
             if (data.Length < Marshal.SizeOf(typeof(IMAGE_DOS_HEADER)))
                 throw new ModuleException("Not a valid executable file");
-            var DosHeader = BytesReadStructAt<IMAGE_DOS_HEADER>(data, 0);
+            var DosHeader = data.ReadStruct<IMAGE_DOS_HEADER>(0);
             if (DosHeader.e_magic != Magic.IMAGE_DOS_SIGNATURE)
                 throw new BadImageFormatException("Not a valid executable file");
 
             if (data.Length < DosHeader.e_lfanew + Marshal.SizeOf(typeof(IMAGE_NT_HEADERS)))
                 throw new ModuleException("Not a valid executable file");
-            var OrgNTHeaders = BytesReadStructAt<IMAGE_NT_HEADERS>(data, DosHeader.e_lfanew);
+            var OrgNTHeaders = data.ReadStruct<IMAGE_NT_HEADERS>(DosHeader.e_lfanew);
 
             if (OrgNTHeaders.Signature != Magic.IMAGE_NT_SIGNATURE)
                 throw new BadImageFormatException("Not a valid PE file");
@@ -72,7 +72,7 @@ namespace StealthModule
             var ofSection = NativeMethods.IMAGE_FIRST_SECTION(DosHeader.e_lfanew, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i != OrgNTHeaders.FileHeader.NumberOfSections; i++, ofSection += Sz.IMAGE_SECTION_HEADER)
             {
-                var Section = BytesReadStructAt<IMAGE_SECTION_HEADER>(data, ofSection);
+                var Section = data.ReadStruct<IMAGE_SECTION_HEADER>(ofSection);
                 var endOfSection = Section.VirtualAddress + (Section.SizeOfRawData > 0 ? Section.SizeOfRawData : OrgNTHeaders.OptionalHeader.SectionAlignment);
                 if (endOfSection > lastSectionEnd)
                     lastSectionEnd = endOfSection;
@@ -90,67 +90,67 @@ namespace StealthModule
                 oldHeader_OptionalHeader_ImageBase = (IntPtr)unchecked((int)(OrgNTHeaders.OptionalHeader.ImageBaseLong >> 32));
 
             // reserve memory for image of library
-            pCode = NativeMethods.VirtualAlloc(oldHeader_OptionalHeader_ImageBase, (UIntPtr)OrgNTHeaders.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+            moduleBase = NativeMethods.VirtualAlloc(oldHeader_OptionalHeader_ImageBase, (UIntPtr)OrgNTHeaders.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
             //pCode = IntPtr.Zero; //test relocation with this
 
             // try to allocate memory at arbitrary position
-            if (pCode == IntPtr.Zero)
-                pCode = NativeMethods.VirtualAlloc(IntPtr.Zero, (UIntPtr)OrgNTHeaders.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+            if (moduleBase == IntPtr.Zero)
+                moduleBase = NativeMethods.VirtualAlloc(IntPtr.Zero, (UIntPtr)OrgNTHeaders.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
 
-            if (pCode == IntPtr.Zero)
+            if (moduleBase == IntPtr.Zero)
                 throw new ModuleException("Out of Memory");
 
-            if (Is64BitProcess && pCode.SpanBoundary(alignedImageSize, 32))
+            if (Is64BitProcess && moduleBase.SpanBoundary(alignedImageSize, 32))
             {
                 // Memory block may not span 4 GB (32 bit) boundaries.
                 var BlockedMemory = new System.Collections.Generic.List<IntPtr>();
-                while (pCode.SpanBoundary(alignedImageSize, 32))
+                while (moduleBase.SpanBoundary(alignedImageSize, 32))
                 {
-                    BlockedMemory.Add(pCode);
-                    pCode = NativeMethods.VirtualAlloc(IntPtr.Zero, (UIntPtr)alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
-                    if (pCode == IntPtr.Zero)
+                    BlockedMemory.Add(moduleBase);
+                    moduleBase = NativeMethods.VirtualAlloc(IntPtr.Zero, (UIntPtr)alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    if (moduleBase == IntPtr.Zero)
                         break;
                 }
                 foreach (var ptr in BlockedMemory)
                     NativeMethods.VirtualFree(ptr, IntPtr.Zero, AllocationType.RELEASE);
-                if (pCode == IntPtr.Zero)
+                if (moduleBase == IntPtr.Zero)
                     throw new ModuleException("Out of Memory");
             }
 
             // commit memory for headers
-            var headers = NativeMethods.VirtualAlloc(pCode, (UIntPtr)OrgNTHeaders.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
+            var headers = NativeMethods.VirtualAlloc(moduleBase, (UIntPtr)OrgNTHeaders.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
             if (headers == IntPtr.Zero)
                 throw new ModuleException("Out of Memory");
 
             // copy PE header to code
             Marshal.Copy(data, 0, headers, (int)OrgNTHeaders.OptionalHeader.SizeOfHeaders);
-            pNTHeaders = headers.Add(DosHeader.e_lfanew);
+            ntHeader = headers.Add(DosHeader.e_lfanew);
 
-            var locationDelta = pCode.Subtract(oldHeader_OptionalHeader_ImageBase);
+            var locationDelta = moduleBase.Subtract(oldHeader_OptionalHeader_ImageBase);
             if (locationDelta != IntPtr.Zero)
             {
                 // update relocated position
                 Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS), "OptionalHeader");
                 Marshal.OffsetOf(typeof(IMAGE_OPTIONAL_HEADER), "ImageBaseLong");
-                var pImageBase = pNTHeaders.Add(Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ImageBase : Of32.IMAGE_OPTIONAL_HEADER_ImageBase));
-                pImageBase.Write(pCode);
+                var pImageBase = ntHeader.Add(Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ImageBase : Of32.IMAGE_OPTIONAL_HEADER_ImageBase));
+                pImageBase.Write(moduleBase);
             }
 
             // copy sections from DLL file block to new memory location
-            CopySections(ref OrgNTHeaders, pCode, pNTHeaders, data);
+            CopySections(ref OrgNTHeaders, moduleBase, ntHeader, data);
 
             // adjust base address of imported data
-            _isRelocated = locationDelta != IntPtr.Zero ? PerformBaseRelocation(ref OrgNTHeaders, pCode, locationDelta) : true;
+            isRelocated = locationDelta != IntPtr.Zero ? PerformBaseRelocation(ref OrgNTHeaders, moduleBase, locationDelta) : true;
 
             // load required dlls and adjust function table of imports
-            ImportModules = BuildImportTable(ref OrgNTHeaders, pCode);
+            importedModuleHandles = BuildImportTable(ref OrgNTHeaders, moduleBase);
 
             // mark memory pages depending on section headers and release
             // sections that are marked as "discardable"
-            FinalizeSections(ref OrgNTHeaders, pCode, pNTHeaders, systemInfo.dwPageSize);
+            FinalizeSections(ref OrgNTHeaders, moduleBase, ntHeader, systemInfo.dwPageSize);
 
             // TLS callbacks are executed BEFORE the main loading
-            ExecuteTLS(ref OrgNTHeaders, pCode, pNTHeaders);
+            ExecuteTLS(ref OrgNTHeaders, moduleBase, ntHeader);
 
             // get entry point of loaded library
             IsDll = (OrgNTHeaders.FileHeader.Characteristics & Magic.IMAGE_FILE_DLL) != 0;
@@ -159,17 +159,17 @@ namespace StealthModule
                 if (IsDll)
                 {
                     // notify library about attaching to process
-                    var dllEntryPtr = pCode.Add(OrgNTHeaders.OptionalHeader.AddressOfEntryPoint);
-                    _dllEntry = (DllEntryDelegate)Marshal.GetDelegateForFunctionPointer(dllEntryPtr, typeof(DllEntryDelegate));
+                    var dllEntryPtr = moduleBase.Add(OrgNTHeaders.OptionalHeader.AddressOfEntryPoint);
+                    dllEntry = (DllEntryDelegate)Marshal.GetDelegateForFunctionPointer(dllEntryPtr, typeof(DllEntryDelegate));
 
-                    _initialized = _dllEntry != null && _dllEntry(pCode, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
-                    if (!_initialized)
+                    isInitialized = dllEntry != null && dllEntry(moduleBase, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
+                    if (!isInitialized)
                         throw new ModuleException("Can't attach DLL to process");
                 }
                 else
                 {
-                    var exeEntryPtr = pCode.Add(OrgNTHeaders.OptionalHeader.AddressOfEntryPoint);
-                    _exeEntry = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
+                    var exeEntryPtr = moduleBase.Add(OrgNTHeaders.OptionalHeader.AddressOfEntryPoint);
+                    exeEntry = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
                 }
             }
         }
@@ -301,21 +301,21 @@ namespace StealthModule
                     pThunkRef = pCode.Add(ImportDesc.FirstThunk);
                     pFuncRef = pCode.Add(ImportDesc.FirstThunk);
                 }
+
                 for (var SzRef = IntPtr.Size; ; pThunkRef = pThunkRef.Add(SzRef), pFuncRef = pFuncRef.Add(SzRef))
                 {
                     IntPtr ReadThunkRef = pThunkRef.Read<IntPtr>(), WriteFuncRef;
                     if (ReadThunkRef == IntPtr.Zero)
                         break;
+
                     if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(ReadThunkRef))
-                    {
                         WriteFuncRef = NativeMethods.GetProcAddress(handle, NativeMethods.IMAGE_ORDINAL(ReadThunkRef));
-                    }
                     else
-                    {
                         WriteFuncRef = NativeMethods.GetProcAddress(handle, pCode.Add(ReadThunkRef).Add(Of.IMAGE_IMPORT_BY_NAME_Name));
-                    }
+
                     if (WriteFuncRef == IntPtr.Zero)
                         throw new ModuleException("Can't get address for imported function");
+
                     pFuncRef.Write(WriteFuncRef);
                 }
             }
@@ -352,13 +352,10 @@ namespace StealthModule
                 {
                     // Section shares page with previous
                     if ((Section.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0)
-                    {
                         sectionData.Characteristics = (sectionData.Characteristics | Section.Characteristics) & ~Magic.IMAGE_SCN_MEM_DISCARDABLE;
-                    }
                     else
-                    {
                         sectionData.Characteristics |= Section.Characteristics;
-                    }
+
                     sectionData.Size = sectionAddress.Add(sectionSize).Subtract(sectionData.Address);
                     continue;
                 }
@@ -382,11 +379,7 @@ namespace StealthModule
             if ((SectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) > 0)
             {
                 // section is not needed any more and can safely be freed
-                if (SectionData.Address == SectionData.AlignedAddress &&
-                    (SectionData.Last ||
-                        SectionAlignment == PageSize ||
-                        unchecked((ulong)SectionData.Size.ToInt64()) % PageSize == 0)
-                    )
+                if (SectionData.Address == SectionData.AlignedAddress && (SectionData.Last || SectionAlignment == PageSize || unchecked((ulong)SectionData.Size.ToInt64()) % PageSize == 0))
                 {
                     // Only allowed to decommit whole pages
                     NativeMethods.VirtualFree(SectionData.Address, SectionData.Size, AllocationType.DECOMMIT);
@@ -429,13 +422,9 @@ namespace StealthModule
             if (size == 0)
             {
                 if ((Section.Characteristics & Magic.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
-                {
                     size = NTHeaders.OptionalHeader.SizeOfInitializedData;
-                }
                 else if ((Section.Characteristics & Magic.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
-                {
                     size = NTHeaders.OptionalHeader.SizeOfUninitializedData;
-                }
             }
             return IntPtr.Size == 8 ? (IntPtr)unchecked((long)size) : (IntPtr)unchecked((int)size);
         }
