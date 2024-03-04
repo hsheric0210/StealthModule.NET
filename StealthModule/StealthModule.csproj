@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BytesExtension.cs" />
     <Compile Include="Resolver.cs" />
     <Compile Include="ModuleException.cs" />
     <Compile Include="MemoryModule+Mapper.cs" />
