@@ -37,3 +37,7 @@ https://github.com/fancycode/MemoryModule
 
 * [DllFromMemory.Net](https://github.com/schellingb/DLLFromMemory-net)
 * [DInvoke](https://github.com/TheWover/DInvoke)
+
+`Resolver.cs` is based on DInvoke [Generic.cs](https://github.com/TheWover/DInvoke/blob/15924897d9992ae90ec43aaf3b74915df3e4518b/DInvoke/DInvoke/DynamicInvoke/Generic.cs)
+
+DLL Manual Mapping utility parts are based on DLLFromMemory-net [DLLFromMemory.cs](https://github.com/schellingb/DLLFromMemory-net/blob/7b1773c8035429e6fb1ab4b8fd0a52d2a4810efc/DLLFromMemory.cs#)

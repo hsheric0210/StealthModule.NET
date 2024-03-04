@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public partial class DLLFromMemory : IDisposable
+    public partial class MemoryModule : IDisposable
     {
         void MemoryLoadLibrary(byte[] data)
         {

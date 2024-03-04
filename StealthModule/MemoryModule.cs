@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public partial class DLLFromMemory : IDisposable
+    public partial class MemoryModule : IDisposable
     {
         public bool Disposed { get; private set; }
         public bool IsDll { get; private set; }
@@ -70,7 +70,7 @@ namespace StealthModule
         /// Loads a unmanged (native) DLL in the memory.
         /// </summary>
         /// <param name="data">Dll as a byte array</param>
-        public DLLFromMemory(byte[] data)
+        public MemoryModule(byte[] data)
         {
             NativeMethods.InitNatives();
             Disposed = false;
@@ -79,7 +79,7 @@ namespace StealthModule
             MemoryLoadLibrary(data);
         }
 
-        ~DLLFromMemory()
+        ~MemoryModule()
         {
             Dispose();
         }
@@ -120,7 +120,7 @@ namespace StealthModule
         IntPtr GetPtrFromFuncName(string funcName)
         {
             if (Disposed)
-                throw new ObjectDisposedException(nameof(DLLFromMemory));
+                throw new ObjectDisposedException(nameof(MemoryModule));
             if (string.IsNullOrEmpty(funcName))
                 throw new ArgumentException(nameof(funcName));
             if (!IsDll)
@@ -164,7 +164,7 @@ namespace StealthModule
         public int MemoryCallEntryPoint()
         {
             if (Disposed)
-                throw new ObjectDisposedException(nameof(DLLFromMemory));
+                throw new ObjectDisposedException(nameof(MemoryModule));
             if (IsDll || _exeEntry == null || !_isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
             return _exeEntry();

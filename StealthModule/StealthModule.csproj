@@ -41,10 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DInvoke.cs" />
+    <Compile Include="Resolver.cs" />
     <Compile Include="ModuleException.cs" />
-    <Compile Include="DLLFromMemory+Mapper.cs" />
-    <Compile Include="DLLFromMemory.cs" />
+    <Compile Include="MemoryModule+Mapper.cs" />
+    <Compile Include="MemoryModule.cs" />
     <Compile Include="NativeConstants.cs" />
     <Compile Include="NativeEnums.cs" />
     <Compile Include="NativeEnums+Image.cs" />

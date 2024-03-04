@@ -8,7 +8,7 @@ namespace StealthModule
     /// Codes in this class are copied from DInvoke project:
     /// https://github.com/TheWover/DInvoke
     /// </summary>
-    public class DInvoke
+    public class Resolver
     {
         /// <summary>
         /// Helper for getting the base address of a module loaded by the current process. This base
