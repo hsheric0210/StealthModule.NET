@@ -6,11 +6,23 @@
 
 This project is heavily based on [DllFromMemory.Net](https://github.com/schellingb/DLLFromMemory-net/) and [DInvoke](https://github.com/TheWover/DInvoke) project.
 
-1. Extra indirection layer is added when calling native APIs.
+Some enhancements are applied:
 
-2. No single P/Invoke usages. No `nameof()` usages. All strings are able to be obfuscated.
+1. Extra indirection layer is added when calling native APIs. (No single P/Invoke usages)
 
-3. Feel free to edit `AssemblyInfo.cs` to change file name, description, version, etc.
+2. No `nameof()` usages. All strings and type names are able to be obfuscated.
+
+## Exemplary usages
+
+* Load DLLs in-memory without leaving the file artifacts to the disk.
+
+    * Instead of manually extracting the native DLL to the disk and then invoking them, load them directly from byte array or resource and use!
+
+    * Manual map core Win32 libraries to bypass API hooking and evade AV/EDR.
+
+* Use native methods in C# without any P/Invokes. (No more P/Invoke to `GetProcAddress`)
+
+    * Make your program easy-to-obfuscate while using native method calls. (String Encryption and Resource Encryption will make your protection stronger)
 
 ## How to use
 
