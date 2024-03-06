@@ -56,38 +56,38 @@ namespace StealthModule
 
             if (data.Length < dosHeader.e_lfanew + Marshal.SizeOf(typeof(IMAGE_NT_HEADERS)))
                 throw new BadImageFormatException("NT header too small");
-            var originalNtHeader = data.ReadStruct<IMAGE_NT_HEADERS>(dosHeader.e_lfanew);
+            var originalNtHeaders = data.ReadStruct<IMAGE_NT_HEADERS>(dosHeader.e_lfanew);
 
-            if (originalNtHeader.Signature != Magic.IMAGE_NT_SIGNATURE)
+            if (originalNtHeaders.Signature != Magic.IMAGE_NT_SIGNATURE)
                 throw new BadImageFormatException("Invalid NT header signature");
-            if (originalNtHeader.FileHeader.Machine != GetMachineType())
+            if (originalNtHeaders.FileHeader.Machine != GetMachineType())
                 throw new BadImageFormatException("Machine type doesn't fit (i386 vs. AMD64)");
-            if ((originalNtHeader.OptionalHeader.SectionAlignment & 1) > 0)
-                throw new BadImageFormatException("Unsupported section alignment: " + originalNtHeader.OptionalHeader.SectionAlignment); //Only support multiple of 2
-            if (originalNtHeader.OptionalHeader.AddressOfEntryPoint == 0)
+            if ((originalNtHeaders.OptionalHeader.SectionAlignment & 1) > 0)
+                throw new BadImageFormatException("Unsupported section alignment: " + originalNtHeaders.OptionalHeader.SectionAlignment); //Only support multiple of 2
+            if (originalNtHeaders.OptionalHeader.AddressOfEntryPoint == 0)
                 throw new ModuleException("Module has no entry point");
 
             NativeMethods.GetNativeSystemInfo(out var systemInfo);
             uint lastSectionEnd = 0;
-            var ofSection = NativeMethods.IMAGE_FIRST_SECTION(dosHeader.e_lfanew, originalNtHeader.FileHeader.SizeOfOptionalHeader);
-            for (var i = 0; i != originalNtHeader.FileHeader.NumberOfSections; i++, ofSection += Sz.IMAGE_SECTION_HEADER)
+            var ofSection = NativeMethods.IMAGE_FIRST_SECTION(dosHeader.e_lfanew, originalNtHeaders.FileHeader.SizeOfOptionalHeader);
+            for (var i = 0; i != originalNtHeaders.FileHeader.NumberOfSections; i++, ofSection += Sz.IMAGE_SECTION_HEADER)
             {
                 var section = data.ReadStruct<IMAGE_SECTION_HEADER>(ofSection);
-                var endOfSection = section.VirtualAddress + (section.SizeOfRawData > 0 ? section.SizeOfRawData : originalNtHeader.OptionalHeader.SectionAlignment);
+                var endOfSection = section.VirtualAddress + (section.SizeOfRawData > 0 ? section.SizeOfRawData : originalNtHeaders.OptionalHeader.SectionAlignment);
                 if (endOfSection > lastSectionEnd)
                     lastSectionEnd = endOfSection;
             }
 
-            var alignedImageSize = AlignValueUp(originalNtHeader.OptionalHeader.SizeOfImage, systemInfo.dwPageSize);
+            var alignedImageSize = AlignValueUp(originalNtHeaders.OptionalHeader.SizeOfImage, systemInfo.dwPageSize);
             var alignedLastSection = AlignValueUp(lastSectionEnd, systemInfo.dwPageSize);
             if (alignedImageSize != alignedLastSection)
                 throw new BadImageFormatException("Wrong section alignment: image=" + alignedImageSize + ", section=" + alignedLastSection);
 
-            var preferredBaseAddress = (Pointer)(originalNtHeader.OptionalHeader.ImageBaseLong >> (Is64BitProcess ? 0 : 32));
+            var preferredBaseAddress = (Pointer)(originalNtHeaders.OptionalHeader.ImageBaseLong >> (Is64BitProcess ? 0 : 32));
 
-            moduleBase = AllocateModuleMemory(ref originalNtHeader, alignedImageSize, preferredBaseAddress);
+            moduleBase = AllocateModuleMemory(ref originalNtHeaders, alignedImageSize, preferredBaseAddress);
 
-            ntHeader = AllocateAndCopyHeaders(moduleBase, ref originalNtHeader, data) + dosHeader.e_lfanew;
+            ntHeaders = AllocateAndCopyHeaders(moduleBase, ref originalNtHeaders, data) + dosHeader.e_lfanew;
 
             var addressDelta = moduleBase - preferredBaseAddress;
             if (addressDelta != Pointer.Zero)
@@ -96,33 +96,33 @@ namespace StealthModule
                 // fixme: is those OffsetOf calls necessary?
                 Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS), "OptionalHeader");
                 Marshal.OffsetOf(typeof(IMAGE_OPTIONAL_HEADER), "ImageBaseLong");
-                var pImageBase = ntHeader + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ImageBase : Of32.IMAGE_OPTIONAL_HEADER_ImageBase);
+                var pImageBase = ntHeaders + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ImageBase : Of32.IMAGE_OPTIONAL_HEADER_ImageBase);
                 pImageBase.Write(moduleBase);
             }
 
             // copy sections from DLL file block to new memory location
-            CopySections(moduleBase, ref originalNtHeader, ntHeader, data);
+            CopySections(moduleBase, ref originalNtHeaders, ntHeaders, data);
 
             // adjust base address of imported data
-            isRelocated = addressDelta == Pointer.Zero || PerformBaseRelocation(moduleBase, ref originalNtHeader, addressDelta);
+            isRelocated = addressDelta == Pointer.Zero || PerformBaseRelocation(moduleBase, ref originalNtHeaders, addressDelta);
 
             // load required dlls and adjust function table of imports
-            importedModuleHandles = BuildImportTable(moduleBase, ref originalNtHeader);
+            importedModuleHandles = BuildImportTable(moduleBase, ref originalNtHeaders);
 
             // mark memory pages depending on section headers and release sections that are marked as "discardable"
-            FinalizeSections(ref originalNtHeader, moduleBase, ntHeader, systemInfo.dwPageSize);
+            FinalizeSections(ref originalNtHeaders, moduleBase, ntHeaders, systemInfo.dwPageSize);
 
             // TLS callbacks are executed BEFORE the main loading
-            ExecuteTLS(ref originalNtHeader, moduleBase, ntHeader);
+            ExecuteTLS(ref originalNtHeaders, moduleBase, ntHeaders);
 
             // get entry point of loaded library
-            IsDll = (originalNtHeader.FileHeader.Characteristics & Magic.IMAGE_FILE_DLL) != 0;
-            if (originalNtHeader.OptionalHeader.AddressOfEntryPoint != 0)
+            IsDll = (originalNtHeaders.FileHeader.Characteristics & Magic.IMAGE_FILE_DLL) != 0;
+            if (originalNtHeaders.OptionalHeader.AddressOfEntryPoint != 0)
             {
                 if (IsDll)
                 {
                     // notify library about attaching to process
-                    var dllEntryPtr = moduleBase + originalNtHeader.OptionalHeader.AddressOfEntryPoint;
+                    var dllEntryPtr = moduleBase + originalNtHeaders.OptionalHeader.AddressOfEntryPoint;
                     dllEntry = (DllEntryDelegate)Marshal.GetDelegateForFunctionPointer(dllEntryPtr, typeof(DllEntryDelegate)); // DllMain
 
                     isInitialized = dllEntry != null && dllEntry(moduleBase, DllReason.DLL_PROCESS_ATTACH, Pointer.Zero);
@@ -131,7 +131,7 @@ namespace StealthModule
                 }
                 else
                 {
-                    var exeEntryPtr = moduleBase + originalNtHeader.OptionalHeader.AddressOfEntryPoint;
+                    var exeEntryPtr = moduleBase + originalNtHeaders.OptionalHeader.AddressOfEntryPoint;
                     exeEntry = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate)); // main
                 }
             }
@@ -328,26 +328,26 @@ namespace StealthModule
             return importModules.Count > 0 ? importModules.ToArray() : Array.Empty<Pointer>();
         }
 
-        static void FinalizeSections(ref IMAGE_NT_HEADERS OrgNTHeaders, IntPtr pCode, IntPtr pNTHeaders, uint PageSize)
+        static void FinalizeSections(ref IMAGE_NT_HEADERS ntHeadersData, IntPtr pCode, IntPtr pNTHeaders, uint PageSize)
         {
             var imageOffset = Is64BitProcess ? (unchecked((ulong)pCode.ToInt64()) & 0xffffffff00000000) : Pointer.Zero;
-            var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
+            var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             var Section = pSection.Read<IMAGE_SECTION_HEADER>();
             var sectionData = new SectionFinalizeData();
             sectionData.Address = Section.PhysicalAddress | imageOffset;
             sectionData.AlignedAddress = sectionData.Address.AlignDown((UIntPtr)PageSize);
-            sectionData.Size = GetRealSectionSize(ref Section, ref OrgNTHeaders);
+            sectionData.Size = GetRealSectionSize(ref Section, ref ntHeadersData);
             sectionData.Characteristics = Section.Characteristics;
             sectionData.Last = false;
             pSection += Sz.IMAGE_SECTION_HEADER;
 
             // loop through all sections and change access flags
-            for (var i = 1; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, pSection += Sz.IMAGE_SECTION_HEADER)
+            for (var i = 1; i < ntHeadersData.FileHeader.NumberOfSections; i++, pSection += Sz.IMAGE_SECTION_HEADER)
             {
                 Section = pSection.Read<IMAGE_SECTION_HEADER>();
                 var sectionAddress = Section.PhysicalAddress | imageOffset;
                 var alignedAddress = sectionAddress.AlignDown((UIntPtr)PageSize);
-                var sectionSize = GetRealSectionSize(ref Section, ref OrgNTHeaders);
+                var sectionSize = GetRealSectionSize(ref Section, ref ntHeadersData);
 
                 // Combine access flags of all sections that share a page
                 // TODO(fancycode): We currently share flags of a trailing large section with the page of a first small section. This should be optimized.
@@ -366,7 +366,7 @@ namespace StealthModule
                     continue;
                 }
 
-                FinalizeSection(sectionData, PageSize, OrgNTHeaders.OptionalHeader.SectionAlignment);
+                FinalizeSection(sectionData, PageSize, ntHeadersData.OptionalHeader.SectionAlignment);
 
                 sectionData.Address = sectionAddress;
                 sectionData.AlignedAddress = alignedAddress;
@@ -374,7 +374,7 @@ namespace StealthModule
                 sectionData.Characteristics = Section.Characteristics;
             }
             sectionData.Last = true;
-            FinalizeSection(sectionData, PageSize, OrgNTHeaders.OptionalHeader.SectionAlignment);
+            FinalizeSection(sectionData, PageSize, ntHeadersData.OptionalHeader.SectionAlignment);
         }
 
         static void FinalizeSection(SectionFinalizeData SectionData, uint PageSize, uint SectionAlignment)

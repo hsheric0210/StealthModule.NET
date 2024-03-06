@@ -50,7 +50,7 @@ namespace StealthModule
         public bool IsDll { get; private set; }
 
         private Pointer moduleBase = Pointer.Zero;
-        private Pointer ntHeader = Pointer.Zero;
+        private Pointer ntHeaders = Pointer.Zero;
         private Pointer[] importedModuleHandles;
         private bool isInitialized;
         private DllEntryDelegate dllEntry;
@@ -131,7 +131,7 @@ namespace StealthModule
             if (!isInitialized)
                 throw new InvalidOperationException("Dll is not initialized");
 
-            var pDirectory = ntHeader + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable);
+            var pDirectory = ntHeaders + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable);
             var Directory = pDirectory.Read<IMAGE_DATA_DIRECTORY>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");
@@ -215,7 +215,7 @@ namespace StealthModule
             {
                 NativeMethods.VirtualFree(moduleBase, Pointer.Zero, AllocationType.RELEASE);
                 moduleBase = Pointer.Zero;
-                ntHeader = Pointer.Zero;
+                ntHeaders = Pointer.Zero;
             }
 
             Disposed = true;
