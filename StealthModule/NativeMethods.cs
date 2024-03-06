@@ -9,7 +9,7 @@ namespace StealthModule
         private delegate bool DFreeLibrary(IntPtr hModule);
         private delegate IntPtr DVirtualAlloc(IntPtr lpAddress, UIntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
         private delegate bool DVirtualFree(IntPtr lpAddress, IntPtr dwSize, AllocationType dwFreeType);
-        private delegate bool DVirtualProtect(IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
+        private delegate bool DVirtualProtect(IntPtr lpAddress, IntPtr dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect);
         private delegate void DGetNativeSystemInfo(out SYSTEM_INFO lpSystemInfo);
         private delegate IntPtr DGetProcAddress(IntPtr hModule, IntPtr procName);
 
@@ -54,7 +54,7 @@ namespace StealthModule
             return virtualFree(lpAddress, dwSize, dwFreeType);
         }
 
-        internal static bool VirtualProtect(Pointer lpAddress, Pointer dwSize, uint flNewProtect, out uint lpflOldProtect)
+        internal static bool VirtualProtect(Pointer lpAddress, Pointer dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
         {
             if (virtualProtect == null)
                 InitNatives();

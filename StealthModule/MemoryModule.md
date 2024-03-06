@@ -11,12 +11,38 @@ Also, you should be careful that when the MemoryModule instance is Garbage Colle
 ```csharp
 private delegate IntPtr MyExportDelegate(string myParameter);
 
-public void InitNative(byte[] dllBytes)
+public void ManualMap(byte[] dllBytes)
 {
     using (var module = new MemoryModule(dllBytes)) // Auto-dispose
     {
         var myExport = module.GetExport<MyExportDelegate>("MyExportFunction1");
         myExport("Hello, World!");
+    }
+}
+```
+
+## Manual map a DLL, find all necessary exports, then purge the DLL header
+
+```csharp
+private delegate IntPtr MyExportDelegate(string myParameter);
+private delegate IntPtr Job1Delegate(int param1, long param2, string param3);
+private delegate IntPtr Job2Delegate(short param1, char param2, byte param3);
+
+public void ManualMap(byte[] dllBytes)
+{
+    using (var module = new MemoryModule(dllBytes)) // Auto-dispose
+    {
+        var myExport = module.GetExport<MyExportDelegate>("MyExportFunction1");
+        var job1 = module.GetExport<Job1Delegate>("MyJob1");
+        var job2 = module.GetExport<Job2Delegate>("MyJob2");
+
+        module.EraseHeaders();
+
+        myExport("Hello, World!");
+        job1(1234, 5678L, "9 10 11 12");
+        job2(1337, 'W', 0xFF);
+
+        ...
     }
 }
 ```

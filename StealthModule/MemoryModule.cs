@@ -102,6 +102,28 @@ namespace StealthModule
             return exeEntry();
         }
 
+        /// <summary>
+        /// Overwrite the PE headers in the memory with random bytes to prevent getting memory dumped.
+        /// Be careful! After this job done, you can no longer use the functions that access the PE header.
+        /// For example, you can't resolve exports by calling 'GetExport' after erasing the PE header. (It will create errors)
+        /// </summary>
+        /// <param name="random"></param>
+        public void EraseHeaders(Random random = null)
+        {
+            // https://github.com/LordNoteworthy/al-khaser/blob/master/al-khaser/AntiDump/ErasePEHeaderFromMemory.cpp
+
+            const int headerSize = 0x1000;
+            random = random ?? new Random();
+
+            if (!NativeMethods.VirtualProtect(moduleBase, headerSize, MemoryProtection.READWRITE, out var oldProtection))
+                return; // Failed to unprotect
+
+            for (var i = 0; i < 0x1000; i++)
+                Marshal.WriteByte(moduleBase, i, (byte)random.Next(0xff));
+
+            NativeMethods.VirtualProtect(moduleBase, headerSize, oldProtection, out _); // Revert protection to attempt perfect crime
+        }
+
         // Cleanup
 
         public void Close() => ((IDisposable)this).Dispose();

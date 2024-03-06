@@ -94,6 +94,9 @@ namespace StealthModule
             if (!isInitialized)
                 throw new InvalidOperationException("Dll is not initialized");
 
+            if (moduleBase.Read<ushort>() != 0x5A04) // prevent calling WalkEDT() after erasing the PE header
+                throw new ModuleException("Not a valid PE DOS header magic; Possibly your PE header is erased");
+
             var pDirectory = ntHeaders + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable);
             var Directory = pDirectory.Read<IMAGE_DATA_DIRECTORY>();
             if (Directory.Size == 0)

@@ -47,17 +47,17 @@ namespace StealthModule
     {
 
         // Protection flags for memory pages (Executable, Readable, Writeable)
-        static readonly PageProtection[,,] ProtectionFlags = new PageProtection[2, 2, 2]
+        static readonly MemoryProtection[,,] ProtectionFlags = new MemoryProtection[2, 2, 2]
         {
             {
                 // not executable
-                { PageProtection.NOACCESS, PageProtection.WRITECOPY },
-                { PageProtection.READONLY, PageProtection.READWRITE }
+                { MemoryProtection.NOACCESS, MemoryProtection.WRITECOPY },
+                { MemoryProtection.READONLY, MemoryProtection.READWRITE }
             },
             {
                 // executable
-                { PageProtection.EXECUTE, PageProtection.EXECUTE_WRITECOPY },
-                { PageProtection.EXECUTE_READ, PageProtection.EXECUTE_READWRITE }
+                { MemoryProtection.EXECUTE, MemoryProtection.EXECUTE_WRITECOPY },
+                { MemoryProtection.EXECUTE_READ, MemoryProtection.EXECUTE_READWRITE }
             }
         };
 
@@ -134,9 +134,9 @@ namespace StealthModule
             var readable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_READ) != 0 ? 1 : 0;
             var writeable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_WRITE) != 0 ? 1 : 0;
             var executable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_EXECUTE) != 0 ? 1 : 0;
-            var protect = (uint)ProtectionFlags[executable, readable, writeable];
+            var protect = ProtectionFlags[executable, readable, writeable];
             if ((sectionData.Characteristics & Magic.IMAGE_SCN_MEM_NOT_CACHED) > 0)
-                protect |= Magic.PAGE_NOCACHE;
+                protect |= MemoryProtection.NOCACHE;
 
             // change memory access flags
             if (!NativeMethods.VirtualProtect(sectionData.Address, sectionData.Size, protect, out var oldProtect))
