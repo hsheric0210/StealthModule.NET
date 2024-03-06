@@ -26,7 +26,7 @@ Some enhancements are applied:
 
 ## How to use
 
-### [MemoryModule](StealthModule/ExportResolver.md)
+### [MemoryModule](StealthModule/MemoryModule.md)
 
 ### [ExportResolver](StealthModule/ExportResolver.md)
 
