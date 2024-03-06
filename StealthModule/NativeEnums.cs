@@ -39,8 +39,11 @@
  *
  */
 
+using System;
+
 namespace StealthModule
 {
+    [Flags]
     internal enum AllocationType : uint
     {
         COMMIT = 0x1000,
@@ -54,6 +57,7 @@ namespace StealthModule
         RELEASE = 0x8000
     }
 
+    [Flags]
     internal enum MemoryProtection : uint
     {
         EXECUTE = 0x10,
@@ -69,6 +73,7 @@ namespace StealthModule
         WRITECOMBINE_Modifierflag = 0x400
     }
 
+    [Flags]
     internal enum PageProtection
     {
         NOACCESS = 0x01,
