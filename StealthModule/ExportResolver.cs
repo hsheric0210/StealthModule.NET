@@ -107,7 +107,7 @@ namespace StealthModule
         {
             var moduleHandle = GetModuleHandle(moduleName, throwIfNotFound);
             if (moduleHandle == Pointer.Zero)
-                return Array.Empty<Pointer>();
+                return new Pointer[exportNames.Length];
 
             return ResolveExports(moduleHandle, exportNames, throwIfNotFound);
         }

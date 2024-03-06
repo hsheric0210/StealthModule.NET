@@ -98,7 +98,7 @@ namespace StealthModule
                 }
             }
 
-            return importModules.Count > 0 ? importModules.ToArray() : Array.Empty<Pointer>();
+            return importModules.ToArray();
         }
     }
 }
