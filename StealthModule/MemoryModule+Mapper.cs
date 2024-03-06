@@ -107,7 +107,7 @@ namespace StealthModule
             isRelocated = addressDelta == Pointer.Zero || PerformBaseRelocation(moduleBase, ref originalNtHeader, addressDelta);
 
             // load required dlls and adjust function table of imports
-            importedModuleHandles = BuildImportTable(ref originalNtHeader, moduleBase);
+            importedModuleHandles = BuildImportTable(moduleBase, ref originalNtHeader);
 
             // mark memory pages depending on section headers and release sections that are marked as "discardable"
             FinalizeSections(ref originalNtHeader, moduleBase, ntHeader, systemInfo.dwPageSize);
@@ -273,58 +273,59 @@ namespace StealthModule
             return true;
         }
 
-        static Pointer[] BuildImportTable(ref IMAGE_NT_HEADERS OrgNTHeaders, Pointer pCode)
+        private static Pointer[] BuildImportTable(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData)
         {
-            var ImportModules = new System.Collections.Generic.List<Pointer>();
-            var NumEntries = OrgNTHeaders.OptionalHeader.ImportTable.Size / Sz.IMAGE_IMPORT_DESCRIPTOR;
-            var pImportDesc = pCode + OrgNTHeaders.OptionalHeader.ImportTable.VirtualAddress;
-            for (uint i = 0; i != NumEntries; i++, pImportDesc += Sz.IMAGE_IMPORT_DESCRIPTOR)
+            var importModules = new System.Collections.Generic.List<Pointer>();
+            var entryCount = ntHeadersData.OptionalHeader.ImportTable.Size / Sz.IMAGE_IMPORT_DESCRIPTOR;
+            var importDescriptorTableAddress = moduleBase + ntHeadersData.OptionalHeader.ImportTable.VirtualAddress;
+            for (uint i = 0; i != entryCount; i++, importDescriptorTableAddress += Sz.IMAGE_IMPORT_DESCRIPTOR)
             {
-                var ImportDesc = pImportDesc.Read<IMAGE_IMPORT_DESCRIPTOR>();
-                if (ImportDesc.Name == 0)
+                var importDescriptor = importDescriptorTableAddress.Read<IMAGE_IMPORT_DESCRIPTOR>();
+                if (importDescriptor.Name == 0)
                     break;
 
-                var handle = NativeMethods.LoadLibrary(pCode + ImportDesc.Name);
-                if (handle.IsInvalidHandle())
+                var importModule = NativeMethods.LoadLibrary(moduleBase + importDescriptor.Name);
+                if (importModule.IsInvalidHandle())
                 {
-                    foreach (var m in ImportModules)
+                    foreach (var m in importModules)
                         NativeMethods.FreeLibrary(m);
-                    ImportModules.Clear();
-                    throw new ModuleException("Can't load libary " + Marshal.PtrToStringAnsi(pCode + ImportDesc.Name));
+                    importModules.Clear();
+                    throw new ModuleException("Can't load libary " + Marshal.PtrToStringAnsi(moduleBase + importDescriptor.Name));
                 }
-                ImportModules.Add(handle);
 
-                Pointer pThunkRef, pFuncRef;
-                if (ImportDesc.OriginalFirstThunk > 0)
+                importModules.Add(importModule);
+
+                Pointer thunkAddress, functionAddress;
+                if (importDescriptor.OriginalFirstThunk > 0)
                 {
-                    pThunkRef = pCode + ImportDesc.OriginalFirstThunk;
-                    pFuncRef = pCode + ImportDesc.FirstThunk;
+                    thunkAddress = moduleBase + importDescriptor.OriginalFirstThunk;
+                    functionAddress = moduleBase + importDescriptor.FirstThunk;
                 }
                 else
                 {
                     // no hint table
-                    pThunkRef = pCode + ImportDesc.FirstThunk;
-                    pFuncRef = pCode + ImportDesc.FirstThunk;
+                    thunkAddress = functionAddress = moduleBase + importDescriptor.FirstThunk;
                 }
 
-                for (var SzRef = IntPtr.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
+                for (var pointerSize = IntPtr.Size; ; thunkAddress += pointerSize, functionAddress += pointerSize)
                 {
-                    Pointer ReadThunkRef = pThunkRef.ReadPointer(), WriteFuncRef;
+                    Pointer ReadThunkRef = thunkAddress.ReadPointer(), WriteFuncRef;
                     if (ReadThunkRef == Pointer.Zero)
                         break;
 
                     if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(ReadThunkRef))
-                        WriteFuncRef = NativeMethods.GetProcAddress(handle, NativeMethods.IMAGE_ORDINAL(ReadThunkRef));
+                        WriteFuncRef = NativeMethods.GetProcAddress(importModule, NativeMethods.IMAGE_ORDINAL(ReadThunkRef));
                     else
-                        WriteFuncRef = NativeMethods.GetProcAddress(handle, pCode + ReadThunkRef + Of.IMAGE_IMPORT_BY_NAME_Name);
+                        WriteFuncRef = NativeMethods.GetProcAddress(importModule, moduleBase + ReadThunkRef + Of.IMAGE_IMPORT_BY_NAME_Name);
 
                     if (WriteFuncRef == Pointer.Zero)
                         throw new ModuleException("Can't get address for imported function");
 
-                    pFuncRef.Write(WriteFuncRef);
+                    functionAddress.Write(WriteFuncRef);
                 }
             }
-            return ImportModules.Count > 0 ? ImportModules.ToArray() : null;
+
+            return importModules.Count > 0 ? importModules.ToArray() : Array.Empty<Pointer>();
         }
 
         static void FinalizeSections(ref IMAGE_NT_HEADERS OrgNTHeaders, IntPtr pCode, IntPtr pNTHeaders, uint PageSize)
