@@ -39,12 +39,16 @@
  *
  */
 
+using System;
 using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
     public partial class MemoryModule
     {
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate void ImageTlsDelegate(IntPtr dllHandle, DllReason reason, IntPtr reserved);
+
         private static void ExecuteTLS(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders)
         {
             if (ntHeaders.OptionalHeader.TLSTable.VirtualAddress == 0) // no tls directory

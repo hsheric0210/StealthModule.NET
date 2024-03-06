@@ -46,7 +46,7 @@ namespace StealthModule
 {
     public partial class MemoryModule : IDisposable
     {
-        void ManualMap(byte[] data)
+        private void ManualMap(byte[] data)
         {
             if (data.Length < Marshal.SizeOf(typeof(IMAGE_DOS_HEADER)))
                 throw new BadImageFormatException("DOS header too small");
@@ -136,5 +136,9 @@ namespace StealthModule
                 }
             }
         }
+
+        private static uint GetMachineType() => Is64BitProcess ? Magic.IMAGE_FILE_MACHINE_AMD64 : Magic.IMAGE_FILE_MACHINE_I386;
+
+        private static uint AlignValueUp(uint value, uint alignment) => (value + alignment - 1) & ~(alignment - 1);
     }
 }

@@ -45,6 +45,22 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
+
+        // Protection flags for memory pages (Executable, Readable, Writeable)
+        static readonly PageProtection[,,] ProtectionFlags = new PageProtection[2, 2, 2]
+        {
+            {
+                // not executable
+                { PageProtection.NOACCESS, PageProtection.WRITECOPY },
+                { PageProtection.READONLY, PageProtection.READWRITE }
+            },
+            {
+                // executable
+                { PageProtection.EXECUTE, PageProtection.EXECUTE_WRITECOPY },
+                { PageProtection.EXECUTE_READ, PageProtection.EXECUTE_READWRITE }
+            }
+        };
+
         private static void FinalizeSections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, uint pageSize)
         {
             var imageOffset = Is64BitProcess ? ((ulong)moduleBase & 0xffffffff00000000) : Pointer.Zero;

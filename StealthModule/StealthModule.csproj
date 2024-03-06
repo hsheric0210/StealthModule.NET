@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BytesExtension.cs" />
+    <Compile Include="MemoryModule+Export.cs" />
     <Compile Include="MemoryModule+ManualMap+TLS.cs" />
     <Compile Include="MemoryModule+ManualMap+IDT.cs" />
     <Compile Include="MemoryModule+ManualMap+Relocation.cs" />
