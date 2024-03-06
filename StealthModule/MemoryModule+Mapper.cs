@@ -101,7 +101,7 @@ namespace StealthModule
             }
 
             // copy sections from DLL file block to new memory location
-            CopySections(ref originalNtHeader, moduleBase, ntHeader, data);
+            CopySections(moduleBase, originalNtHeader, ntHeader, data);
 
             // adjust base address of imported data
             isRelocated = addressDelta == Pointer.Zero || PerformBaseRelocation(ref originalNtHeader, moduleBase, addressDelta);
@@ -182,46 +182,46 @@ namespace StealthModule
             return mem;
         }
 
-        private static void CopySections(ref IMAGE_NT_HEADERS OrgNTHeaders, Pointer pCode, Pointer pNTHeaders, byte[] data)
+        private static void CopySections(Pointer moduleBase, IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, byte[] data)
         {
-            var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
-            for (var i = 0; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, pSection += Sz.IMAGE_SECTION_HEADER)
+            var sectionBase = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
+            for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionBase += Sz.IMAGE_SECTION_HEADER)
             {
-                var Section = pSection.Read<IMAGE_SECTION_HEADER>();
-                if (Section.SizeOfRawData == 0)
+                var sectionHeader = sectionBase.Read<IMAGE_SECTION_HEADER>();
+                if (sectionHeader.SizeOfRawData == 0)
                 {
                     // section doesn't contain data in the dll itself, but may define uninitialized data
-                    var size = OrgNTHeaders.OptionalHeader.SectionAlignment;
-                    if (size > 0)
+                    var align = ntHeadersData.OptionalHeader.SectionAlignment;
+                    if (align > 0)
                     {
-                        var dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, size, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                        var dest = NativeMethods.VirtualAlloc(moduleBase + sectionHeader.VirtualAddress, align, AllocationType.COMMIT, MemoryProtection.READWRITE);
                         if (dest == Pointer.Zero)
                             throw new ModuleException("Unable to allocate memory");
 
                         // Always use position from file to support alignments smaller than page size (allocation above will align to page size).
-                        dest = pCode + Section.VirtualAddress;
+                        dest = moduleBase + sectionHeader.VirtualAddress;
 
                         // NOTE: On 64bit systems we truncate to 32bit here but expand again later when "PhysicalAddress" is used.
-                        (pSection + Of.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
+                        (sectionBase + Of.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
 
                         //NativeMethods.MemSet(dest, 0, (UIntPtr)size);
-                        for (var j = 0; j < size; j++)
+                        for (var j = 0; j < align; j++)
                             Marshal.WriteByte(dest, j, 0); // inefficient but at least it doesn't use any native function
                     }
                 }
                 else
                 {
                     // commit memory block and copy data from dll
-                    var dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, Section.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    var dest = NativeMethods.VirtualAlloc(moduleBase + sectionHeader.VirtualAddress, sectionHeader.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
                     if (dest == Pointer.Zero)
                         throw new ModuleException("Out of memory");
 
                     // Always use position from file to support alignments smaller than page size (allocation above will align to page size).
-                    dest = pCode + Section.VirtualAddress;
-                    Marshal.Copy(data, checked((int)Section.PointerToRawData), dest, checked((int)Section.SizeOfRawData));
+                    dest = moduleBase + sectionHeader.VirtualAddress;
+                    Marshal.Copy(data, checked((int)sectionHeader.PointerToRawData), dest, checked((int)sectionHeader.SizeOfRawData));
 
                     // NOTE: On 64bit systems we truncate to 32bit here but expand again later when "PhysicalAddress" is used.
-                    (pSection + Of.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
+                    (sectionBase + Of.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
                 }
             }
         }
