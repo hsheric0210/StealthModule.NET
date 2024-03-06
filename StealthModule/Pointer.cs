@@ -39,11 +39,11 @@ namespace StealthModule
 
         // Direct read/write
 
-        public T Read<T>() => (T)Marshal.PtrToStructure((IntPtr)this, typeof(T));
+        public T Read<T>() => (T)Marshal.PtrToStructure(this, typeof(T));
 
-        public Pointer ReadPtr() => (Pointer)Marshal.PtrToStructure((IntPtr)this, typeof(IntPtr));
+        public Pointer ReadPointer() => (Pointer)Marshal.PtrToStructure(this, typeof(IntPtr));
 
-        public void Write<T>(T buffer) => Marshal.StructureToPtr(buffer, (IntPtr)this, false);
+        public void Write<T>(T buffer) => Marshal.StructureToPtr(buffer, this, false);
 
         // Pointer arithmetics
 
@@ -78,5 +78,9 @@ namespace StealthModule
         public static bool operator !=(Pointer value1, Pointer value2) => value1.value != value2.value;
 
         public override string ToString() => Is64Bit ? ((ulong)value).ToString("X16") : ((ulong)value).ToString("X8");
+
+        public override bool Equals(object obj) => obj is Pointer other && value == other.value;
+
+        public override int GetHashCode() => (int)this;
     }
 }

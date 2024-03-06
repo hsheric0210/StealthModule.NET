@@ -303,7 +303,7 @@ namespace StealthModule
 
                 for (var SzRef = IntPtr.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
                 {
-                    Pointer ReadThunkRef = pThunkRef.Read<IntPtr>(), WriteFuncRef;
+                    Pointer ReadThunkRef = pThunkRef.ReadPointer(), WriteFuncRef;
                     if (ReadThunkRef == Pointer.Zero)
                         break;
 
@@ -407,7 +407,7 @@ namespace StealthModule
             var pCallBack = (Pointer)tlsDir.AddressOfCallBacks;
             if (pCallBack != Pointer.Zero)
             {
-                for (Pointer Callback; (Callback = pCallBack.ReadPtr()) != Pointer.Zero; pCallBack += Pointer.Size)
+                for (Pointer Callback; (Callback = pCallBack.ReadPointer()) != Pointer.Zero; pCallBack += Pointer.Size)
                 {
                     var tls = (ImageTlsDelegate)Marshal.GetDelegateForFunctionPointer(Callback, typeof(ImageTlsDelegate));
                     tls(pCode, DllReason.DLL_PROCESS_ATTACH, Pointer.Zero);
