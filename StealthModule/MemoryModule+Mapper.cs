@@ -110,10 +110,10 @@ namespace StealthModule
             importedModuleHandles = BuildImportTable(moduleBase, ref originalNtHeaders);
 
             // mark memory pages depending on section headers and release sections that are marked as "discardable"
-            FinalizeSections(ref originalNtHeaders, moduleBase, ntHeaders, systemInfo.dwPageSize);
+            FinalizeSections(moduleBase, ref originalNtHeaders, ntHeaders, systemInfo.dwPageSize);
 
             // TLS callbacks are executed BEFORE the main loading
-            ExecuteTLS(ref originalNtHeaders, moduleBase, ntHeaders);
+            ExecuteTLS(moduleBase, ref originalNtHeaders);
 
             // get entry point of loaded library
             IsDll = (originalNtHeaders.FileHeader.Characteristics & Magic.IMAGE_FILE_DLL) != 0;
@@ -226,12 +226,12 @@ namespace StealthModule
             }
         }
 
-        private static bool PerformBaseRelocation(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer delta)
+        private static bool PerformBaseRelocation(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders, Pointer delta)
         {
-            if (ntHeadersData.OptionalHeader.BaseRelocationTable.Size == 0)
+            if (ntHeaders.OptionalHeader.BaseRelocationTable.Size == 0)
                 return delta == Pointer.Zero;
 
-            for (var relocationTableAddress = moduleBase + ntHeadersData.OptionalHeader.BaseRelocationTable.VirtualAddress; ;)
+            for (var relocationTableAddress = moduleBase + ntHeaders.OptionalHeader.BaseRelocationTable.VirtualAddress; ;)
             {
                 var relocationTable = relocationTableAddress.Read<IMAGE_BASE_RELOCATION>();
                 if (relocationTable.VirtualAdress == 0)
@@ -273,11 +273,11 @@ namespace StealthModule
             return true;
         }
 
-        private static Pointer[] BuildImportTable(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData)
+        private static Pointer[] BuildImportTable(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders)
         {
             var importModules = new System.Collections.Generic.List<Pointer>();
-            var entryCount = ntHeadersData.OptionalHeader.ImportTable.Size / Sz.IMAGE_IMPORT_DESCRIPTOR;
-            var importDescriptorTableAddress = moduleBase + ntHeadersData.OptionalHeader.ImportTable.VirtualAddress;
+            var entryCount = ntHeaders.OptionalHeader.ImportTable.Size / Sz.IMAGE_IMPORT_DESCRIPTOR;
+            var importDescriptorTableAddress = moduleBase + ntHeaders.OptionalHeader.ImportTable.VirtualAddress;
             for (uint i = 0; i != entryCount; i++, importDescriptorTableAddress += Sz.IMAGE_IMPORT_DESCRIPTOR)
             {
                 var importDescriptor = importDescriptorTableAddress.Read<IMAGE_IMPORT_DESCRIPTOR>();
@@ -328,109 +328,114 @@ namespace StealthModule
             return importModules.Count > 0 ? importModules.ToArray() : Array.Empty<Pointer>();
         }
 
-        static void FinalizeSections(ref IMAGE_NT_HEADERS ntHeadersData, IntPtr pCode, IntPtr pNTHeaders, uint PageSize)
+        private static void FinalizeSections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, uint pageSize)
         {
-            var imageOffset = Is64BitProcess ? (unchecked((ulong)pCode.ToInt64()) & 0xffffffff00000000) : Pointer.Zero;
-            var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, ntHeadersData.FileHeader.SizeOfOptionalHeader);
-            var Section = pSection.Read<IMAGE_SECTION_HEADER>();
+            var imageOffset = Is64BitProcess ? ((ulong)moduleBase & 0xffffffff00000000) : Pointer.Zero;
+            var sectionHeaderAddress = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
+            var sectionHeader = sectionHeaderAddress.Read<IMAGE_SECTION_HEADER>();
+
             var sectionData = new SectionFinalizeData();
-            sectionData.Address = Section.PhysicalAddress | imageOffset;
-            sectionData.AlignedAddress = sectionData.Address.AlignDown((UIntPtr)PageSize);
-            sectionData.Size = GetRealSectionSize(ref Section, ref ntHeadersData);
-            sectionData.Characteristics = Section.Characteristics;
+            sectionData.Address = sectionHeader.PhysicalAddress | imageOffset;
+            sectionData.AlignedAddress = sectionData.Address.AlignDown((UIntPtr)pageSize);
+            sectionData.Size = GetRealSectionSize(ref sectionHeader, ref ntHeadersData);
+            sectionData.Characteristics = sectionHeader.Characteristics;
             sectionData.Last = false;
-            pSection += Sz.IMAGE_SECTION_HEADER;
+
+            sectionHeaderAddress += Sz.IMAGE_SECTION_HEADER;
 
             // loop through all sections and change access flags
-            for (var i = 1; i < ntHeadersData.FileHeader.NumberOfSections; i++, pSection += Sz.IMAGE_SECTION_HEADER)
+            for (var i = 1; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionHeaderAddress += Sz.IMAGE_SECTION_HEADER)
             {
-                Section = pSection.Read<IMAGE_SECTION_HEADER>();
-                var sectionAddress = Section.PhysicalAddress | imageOffset;
-                var alignedAddress = sectionAddress.AlignDown((UIntPtr)PageSize);
-                var sectionSize = GetRealSectionSize(ref Section, ref ntHeadersData);
+                sectionHeader = sectionHeaderAddress.Read<IMAGE_SECTION_HEADER>();
+                var sectionAddress = sectionHeader.PhysicalAddress | imageOffset;
+                var alignedAddress = sectionAddress.AlignDown((UIntPtr)pageSize);
+                var sectionSize = GetRealSectionSize(ref sectionHeader, ref ntHeadersData);
 
                 // Combine access flags of all sections that share a page
                 // TODO(fancycode): We currently share flags of a trailing large section with the page of a first small section. This should be optimized.
                 var a = sectionData.Address + sectionData.Size;
                 ulong b = (ulong)a, c = unchecked((ulong)alignedAddress);
 
-                if (sectionData.AlignedAddress == alignedAddress || (ulong)(sectionData.Address + sectionData.Size) > unchecked((ulong)alignedAddress))
+                if (sectionData.AlignedAddress == alignedAddress || (ulong)(sectionData.Address + sectionData.Size) > (ulong)alignedAddress)
                 {
                     // Section shares page with previous
-                    if ((Section.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0)
-                        sectionData.Characteristics = (sectionData.Characteristics | Section.Characteristics) & ~Magic.IMAGE_SCN_MEM_DISCARDABLE;
+
+                    if ((sectionHeader.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0)
+                        sectionData.Characteristics = (sectionData.Characteristics | sectionHeader.Characteristics) & ~Magic.IMAGE_SCN_MEM_DISCARDABLE;
                     else
-                        sectionData.Characteristics |= Section.Characteristics;
+                        sectionData.Characteristics |= sectionHeader.Characteristics;
 
                     sectionData.Size = sectionAddress + sectionSize - sectionData.Address;
                     continue;
                 }
 
-                FinalizeSection(sectionData, PageSize, ntHeadersData.OptionalHeader.SectionAlignment);
+                FinalizeSection(sectionData, pageSize, ntHeadersData.OptionalHeader.SectionAlignment);
 
                 sectionData.Address = sectionAddress;
                 sectionData.AlignedAddress = alignedAddress;
                 sectionData.Size = sectionSize;
-                sectionData.Characteristics = Section.Characteristics;
+                sectionData.Characteristics = sectionHeader.Characteristics;
             }
+
             sectionData.Last = true;
-            FinalizeSection(sectionData, PageSize, ntHeadersData.OptionalHeader.SectionAlignment);
+            FinalizeSection(sectionData, pageSize, ntHeadersData.OptionalHeader.SectionAlignment);
         }
 
-        static void FinalizeSection(SectionFinalizeData SectionData, uint PageSize, uint SectionAlignment)
+        private static void FinalizeSection(SectionFinalizeData sectionData, uint pageSize, uint sectionAlignment)
         {
-            if (SectionData.Size == Pointer.Zero)
+            if (sectionData.Size == Pointer.Zero)
                 return;
 
-            if ((SectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) > 0)
+            if ((sectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) > 0)
             {
                 // section is not needed any more and can safely be freed
-                if (SectionData.Address == SectionData.AlignedAddress && (SectionData.Last || SectionAlignment == PageSize || (ulong)SectionData.Size % PageSize == 0))
+                if (sectionData.Address == sectionData.AlignedAddress && (sectionData.Last || sectionAlignment == pageSize || (ulong)sectionData.Size % pageSize == 0))
                 {
                     // Only allowed to decommit whole pages
-                    NativeMethods.VirtualFree(SectionData.Address, SectionData.Size, AllocationType.DECOMMIT);
+                    NativeMethods.VirtualFree(sectionData.Address, sectionData.Size, AllocationType.DECOMMIT);
                 }
                 return;
             }
 
             // determine protection flags based on characteristics
-            var readable = (SectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_READ) != 0 ? 1 : 0;
-            var writeable = (SectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_WRITE) != 0 ? 1 : 0;
-            var executable = (SectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_EXECUTE) != 0 ? 1 : 0;
+            var readable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_READ) != 0 ? 1 : 0;
+            var writeable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_WRITE) != 0 ? 1 : 0;
+            var executable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_EXECUTE) != 0 ? 1 : 0;
             var protect = (uint)ProtectionFlags[executable, readable, writeable];
-            if ((SectionData.Characteristics & Magic.IMAGE_SCN_MEM_NOT_CACHED) > 0)
+            if ((sectionData.Characteristics & Magic.IMAGE_SCN_MEM_NOT_CACHED) > 0)
                 protect |= Magic.PAGE_NOCACHE;
 
             // change memory access flags
-            if (!NativeMethods.VirtualProtect(SectionData.Address, SectionData.Size, protect, out var oldProtect))
+            if (!NativeMethods.VirtualProtect(sectionData.Address, sectionData.Size, protect, out var oldProtect))
                 throw new ModuleException("Error protecting memory page");
         }
 
-        static void ExecuteTLS(ref IMAGE_NT_HEADERS OrgNTHeaders, Pointer pCode, Pointer pNTHeaders)
+        private static void ExecuteTLS(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders)
         {
-            if (OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress == 0)
+            if (ntHeaders.OptionalHeader.TLSTable.VirtualAddress == 0) // no tls directory
                 return;
-            var tlsDir = (pCode + OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<IMAGE_TLS_DIRECTORY>();
-            var pCallBack = (Pointer)tlsDir.AddressOfCallBacks;
-            if (pCallBack != Pointer.Zero)
+
+            var tlsDir = (moduleBase + ntHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<IMAGE_TLS_DIRECTORY>();
+            Pointer tlsCallbackAddress = tlsDir.AddressOfCallBacks;
+            if (tlsCallbackAddress != Pointer.Zero)
             {
-                for (Pointer Callback; (Callback = pCallBack.ReadPointer()) != Pointer.Zero; pCallBack += Pointer.Size)
+                for (Pointer tlsCallback; (tlsCallback = tlsCallbackAddress.ReadPointer()) != Pointer.Zero; tlsCallbackAddress += Pointer.Size)
                 {
-                    var tls = (ImageTlsDelegate)Marshal.GetDelegateForFunctionPointer(Callback, typeof(ImageTlsDelegate));
-                    tls(pCode, DllReason.DLL_PROCESS_ATTACH, Pointer.Zero);
+                    var tls = (ImageTlsDelegate)Marshal.GetDelegateForFunctionPointer(tlsCallback, typeof(ImageTlsDelegate));
+                    tls(moduleBase, DllReason.DLL_PROCESS_ATTACH, Pointer.Zero);
                 }
             }
         }
 
-        static IntPtr GetRealSectionSize(ref IMAGE_SECTION_HEADER Section, ref IMAGE_NT_HEADERS NTHeaders)
+        static IntPtr GetRealSectionSize(ref IMAGE_SECTION_HEADER sectionHeader, ref IMAGE_NT_HEADERS ntHeaders)
         {
-            var size = Section.SizeOfRawData;
+            var size = sectionHeader.SizeOfRawData;
             if (size == 0)
             {
-                if ((Section.Characteristics & Magic.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
-                    size = NTHeaders.OptionalHeader.SizeOfInitializedData;
-                else if ((Section.Characteristics & Magic.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
-                    size = NTHeaders.OptionalHeader.SizeOfUninitializedData;
+                if ((sectionHeader.Characteristics & Magic.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
+                    size = ntHeaders.OptionalHeader.SizeOfInitializedData;
+                else if ((sectionHeader.Characteristics & Magic.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
+                    size = ntHeaders.OptionalHeader.SizeOfUninitializedData;
             }
             return IntPtr.Size == 8 ? (IntPtr)unchecked((long)size) : (IntPtr)unchecked((int)size);
         }
