@@ -43,7 +43,7 @@ public void ManualMap(byte[] dllBytes)
         module.EraseHeaders();
 
         // This will raise an exception
-        // job3 = module.GetExport<Job3Delegate>("MyJob3");
+        // var job3 = module.GetExport<Job3Delegate>("MyJob3");
 
         // Function pointers (delegates) are still valid even after erasing the PE header.
         myExport("Hello, World!");

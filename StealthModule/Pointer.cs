@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace StealthModule
 {
     /// <summary>
-    /// A wrapper class for IntPtr to provide additional pointer arithmetic, alignment and checks.
+    /// A wrapper class for UIntPtr to provide additional pointer arithmetic, alignment and checks.
     /// </summary>
     public readonly struct Pointer
     {
