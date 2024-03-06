@@ -27,17 +27,25 @@ public void ManualMap(byte[] dllBytes)
 private delegate IntPtr MyExportDelegate(string myParameter);
 private delegate IntPtr Job1Delegate(int param1, long param2, string param3);
 private delegate IntPtr Job2Delegate(short param1, char param2, byte param3);
+private delegate IntPtr Job3Delegate(char param1, int param2, byte param3);
 
 public void ManualMap(byte[] dllBytes)
 {
     using (var module = new MemoryModule(dllBytes)) // Auto-dispose
     {
+        // module.GetExport will not work after erasing the PE header
+        // You should acquire all required function pointers before erasing the PE header.
         var myExport = module.GetExport<MyExportDelegate>("MyExportFunction1");
         var job1 = module.GetExport<Job1Delegate>("MyJob1");
         var job2 = module.GetExport<Job2Delegate>("MyJob2");
 
+        // Erase the PE header by overwriting 0x0 ~ 0x1000 region in random bytes.
         module.EraseHeaders();
 
+        // This will raise an exception
+        // job3 = module.GetExport<Job3Delegate>("MyJob3");
+
+        // Function pointers (delegates) are still valid even after erasing the PE header.
         myExport("Hello, World!");
         job1(1234, 5678L, "9 10 11 12");
         job2(1337, 'W', 0xFF);
