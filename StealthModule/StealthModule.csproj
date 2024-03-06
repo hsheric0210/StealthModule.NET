@@ -51,7 +51,7 @@
     <Compile Include="MemoryModule+ManualMap+Allocation.cs" />
     <Compile Include="NativeMethods.Macros.cs" />
     <Compile Include="Pointer.cs" />
-    <Compile Include="Resolver.cs" />
+    <Compile Include="ExportResolver.cs" />
     <Compile Include="ModuleException.cs" />
     <Compile Include="MemoryModule+ManualMap.cs" />
     <Compile Include="MemoryModule.cs" />

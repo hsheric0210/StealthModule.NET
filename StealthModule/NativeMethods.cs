@@ -83,7 +83,6 @@ namespace StealthModule
             if (nativeInitialized)
                 return;
 
-            var kernel32 = Resolver.GetModuleHandle("kernel32.dll");
             var exports = new string[] {
                  "LoadLibraryA",
                  "FreeLibrary",
@@ -94,7 +93,7 @@ namespace StealthModule
                  "GetProcAddress",
             };
 
-            var addresses = Resolver.GetProcAddressBatch(kernel32, exports, true);
+            var addresses = ExportResolver.ResolveExports("kernel32.dll", exports, true);
             loadLibrary = Marshal.GetDelegateForFunctionPointer<DLoadLibrary>(addresses[0]);
             freeLibrary = Marshal.GetDelegateForFunctionPointer<DFreeLibrary>(addresses[1]);
             virtualAlloc = Marshal.GetDelegateForFunctionPointer<DVirtualAlloc>(addresses[2]);
