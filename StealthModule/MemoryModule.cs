@@ -76,7 +76,7 @@ namespace StealthModule
             Disposed = false;
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
-            MemoryLoadLibrary(data);
+            ManualMap(data);
         }
 
         ~MemoryModule()

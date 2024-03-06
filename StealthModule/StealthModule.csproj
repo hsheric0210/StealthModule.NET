@@ -42,6 +42,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BytesExtension.cs" />
+    <Compile Include="MemoryModule+Mapper+TLS.cs" />
+    <Compile Include="MemoryModule+Mapper+IDT.cs" />
+    <Compile Include="MemoryModule+Mapper+Relocation.cs" />
+    <Compile Include="MemoryModule+Mapper+CopySections.cs" />
+    <Compile Include="MemoryModule+Mapper+FinalizeSections.cs" />
+    <Compile Include="MemoryModule+Mapper+Allocation.cs" />
     <Compile Include="NativeMethods.Macros.cs" />
     <Compile Include="Pointer.cs" />
     <Compile Include="Resolver.cs" />
