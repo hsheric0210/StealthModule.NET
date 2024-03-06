@@ -32,9 +32,19 @@ Some enhancements are applied:
 
 ## How to reference this project from your project
 
-### Solution 1 - git submodule
+### Solution 1 - git submodule (recommended)
+
+1. Add this project to your repository using command: `git submodule add https://github.com/hsheric0210/StealthModule.NET`
+
+2. Add the project file `StealthModule.csproj` to your project.
+
+3. Add the reference to StealthModule to your own project. (Project > Add Reference > Projects; `Alt+P R` > Projects)
 
 ### Solution 2 - Manual DLL reference
+
+1. Build this project to obtain StealthModule.dll (you must build in both 32-bit, 64-bit version)
+
+2. Add reference to each 32-bit and 64-bit StealthModule.dll
 
 ## Contributions
 
