@@ -42,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BytesExtension.cs" />
+    <Compile Include="NativeMethods.Macros.cs" />
+    <Compile Include="Pointer.cs" />
     <Compile Include="Resolver.cs" />
     <Compile Include="ModuleException.cs" />
     <Compile Include="MemoryModule+Mapper.cs" />
@@ -51,7 +53,6 @@
     <Compile Include="NativeEnums+Image.cs" />
     <Compile Include="NativeStructs+Image.cs" />
     <Compile Include="NativeStructs.cs" />
-    <Compile Include="IntPtrExtension.cs" />
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -3,15 +3,15 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    internal class NativeMethods
+    internal partial class NativeMethods
     {
-        internal delegate IntPtr DVirtualAlloc(IntPtr lpAddress, UIntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
-        internal delegate IntPtr DLoadLibrary(IntPtr lpFileName);
-        internal delegate bool DVirtualFree(IntPtr lpAddress, IntPtr dwSize, AllocationType dwFreeType);
-        internal delegate bool DVirtualProtect(IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
-        internal delegate bool DFreeLibrary(IntPtr hModule);
-        internal delegate void DGetNativeSystemInfo(out SYSTEM_INFO lpSystemInfo);
-        internal delegate IntPtr DGetProcAddress(IntPtr hModule, IntPtr procName);
+        private delegate IntPtr DLoadLibrary(IntPtr lpFileName);
+        private delegate bool DFreeLibrary(IntPtr hModule);
+        private delegate IntPtr DVirtualAlloc(IntPtr lpAddress, UIntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+        private delegate bool DVirtualFree(IntPtr lpAddress, IntPtr dwSize, AllocationType dwFreeType);
+        private delegate bool DVirtualProtect(IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
+        private delegate void DGetNativeSystemInfo(out SYSTEM_INFO lpSystemInfo);
+        private delegate IntPtr DGetProcAddress(IntPtr hModule, IntPtr procName);
 
         static bool nativeInitialized;
         private static DLoadLibrary loadLibrary;
@@ -22,101 +22,61 @@ namespace StealthModule
         private static DGetNativeSystemInfo getNativeSystemInfo;
         private static DGetProcAddress getProcAddress;
 
-        internal static DLoadLibrary LoadLibrary
+        internal static Pointer LoadLibrary(Pointer lpFileName)
         {
-            get
-            {
-                if (loadLibrary == null)
-                    InitNatives();
+            if (loadLibrary == null)
+                InitNatives();
 
-                return loadLibrary;
-            }
-            set => loadLibrary = value;
+            return loadLibrary(lpFileName);
         }
 
-        internal static DFreeLibrary FreeLibrary
+        internal static bool FreeLibrary(Pointer hModule)
         {
-            get
-            {
-                if (freeLibrary == null)
-                    InitNatives();
+            if (freeLibrary == null)
+                InitNatives();
 
-                return freeLibrary;
-            }
-            set => freeLibrary = value;
+            return freeLibrary(hModule);
         }
 
-        internal static DVirtualAlloc VirtualAlloc
+        internal static Pointer VirtualAlloc(Pointer lpAddress, Pointer dwSize, AllocationType flAllocationType, MemoryProtection flProtect)
         {
-            get
-            {
-                if (virtualAlloc == null)
-                    InitNatives();
+            if (virtualAlloc == null)
+                InitNatives();
 
-                return virtualAlloc;
-            }
-            set => virtualAlloc = value;
+            return virtualAlloc(lpAddress, dwSize, flAllocationType, flProtect);
         }
 
-        internal static DVirtualFree VirtualFree
+        internal static bool VirtualFree(Pointer lpAddress, Pointer dwSize, AllocationType dwFreeType)
         {
-            get
-            {
-                if (virtualFree == null)
-                    InitNatives();
+            if (virtualFree == null)
+                InitNatives();
 
-                return virtualFree;
-            }
-            set => virtualFree = value;
+            return virtualFree(lpAddress, dwSize, dwFreeType);
         }
 
-        internal static DVirtualProtect VirtualProtect
+        internal static bool VirtualProtect(Pointer lpAddress, Pointer dwSize, uint flNewProtect, out uint lpflOldProtect)
         {
-            get
-            {
-                if (virtualProtect == null)
-                    InitNatives();
+            if (virtualProtect == null)
+                InitNatives();
 
-                return virtualProtect;
-            }
-            set => virtualProtect = value;
+            return virtualProtect(lpAddress, dwSize, flNewProtect, out lpflOldProtect);
         }
 
-        internal static DGetNativeSystemInfo GetNativeSystemInfo
+        internal static void GetNativeSystemInfo(out SYSTEM_INFO lpSystemInfo)
         {
-            get
-            {
-                if (getNativeSystemInfo == null)
-                    InitNatives();
+            if (getNativeSystemInfo == null)
+                InitNatives();
 
-                return getNativeSystemInfo;
-            }
-            set => getNativeSystemInfo = value;
+            getNativeSystemInfo(out lpSystemInfo);
         }
 
-        internal static DGetProcAddress GetProcAddress
+        internal static Pointer GetProcAddress(Pointer hModule, Pointer procName)
         {
-            get
-            {
-                if (getProcAddress == null)
-                    InitNatives();
+            if (getProcAddress == null)
+                InitNatives();
 
-                return getProcAddress;
-            }
-            set => getProcAddress = value;
+            return getProcAddress(hModule, procName);
         }
-
-        // Equivalent to the IMAGE_FIRST_SECTION macro
-        internal static IntPtr IMAGE_FIRST_SECTION(IntPtr pNTHeader, ushort ntheader_FileHeader_SizeOfOptionalHeader) => pNTHeader.Add(Of.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader);
-
-        // Equivalent to the IMAGE_FIRST_SECTION macro
-        internal static int IMAGE_FIRST_SECTION(int lfanew, ushort ntheader_FileHeader_SizeOfOptionalHeader) => lfanew + Of.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader;
-
-        // Equivalent to the IMAGE_ORDINAL32/64 macros
-        internal static IntPtr IMAGE_ORDINAL(IntPtr ordinal) => (IntPtr)(int)(unchecked((ulong)ordinal.ToInt64()) & 0xffff);
-
-        // Equivalent to the IMAGE_SNAP_BY_ORDINAL32/64 macro
-        internal static bool IMAGE_SNAP_BY_ORDINAL(IntPtr ordinal) => IntPtr.Size == 8 ? (ordinal.ToInt64() < 0) : (ordinal.ToInt32() < 0);
 
         internal static void InitNatives()
         {
@@ -135,13 +95,13 @@ namespace StealthModule
             };
 
             var addresses = Resolver.GetProcAddressBatch(kernel32, exports, true);
-            LoadLibrary = Marshal.GetDelegateForFunctionPointer<DLoadLibrary>(addresses[0]);
-            FreeLibrary = Marshal.GetDelegateForFunctionPointer<DFreeLibrary>(addresses[1]);
-            VirtualAlloc = Marshal.GetDelegateForFunctionPointer<DVirtualAlloc>(addresses[2]);
-            VirtualFree = Marshal.GetDelegateForFunctionPointer<DVirtualFree>(addresses[3]);
-            VirtualProtect = Marshal.GetDelegateForFunctionPointer<DVirtualProtect>(addresses[4]);
-            GetNativeSystemInfo = Marshal.GetDelegateForFunctionPointer<DGetNativeSystemInfo>(addresses[5]);
-            GetProcAddress = Marshal.GetDelegateForFunctionPointer<DGetProcAddress>(addresses[6]);
+            loadLibrary = Marshal.GetDelegateForFunctionPointer<DLoadLibrary>(addresses[0]);
+            freeLibrary = Marshal.GetDelegateForFunctionPointer<DFreeLibrary>(addresses[1]);
+            virtualAlloc = Marshal.GetDelegateForFunctionPointer<DVirtualAlloc>(addresses[2]);
+            virtualFree = Marshal.GetDelegateForFunctionPointer<DVirtualFree>(addresses[3]);
+            virtualProtect = Marshal.GetDelegateForFunctionPointer<DVirtualProtect>(addresses[4]);
+            getNativeSystemInfo = Marshal.GetDelegateForFunctionPointer<DGetNativeSystemInfo>(addresses[5]);
+            getProcAddress = Marshal.GetDelegateForFunctionPointer<DGetProcAddress>(addresses[6]);
             nativeInitialized = true;
         }
     }

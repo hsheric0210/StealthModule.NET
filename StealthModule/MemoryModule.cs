@@ -49,9 +49,9 @@ namespace StealthModule
         public bool Disposed { get; private set; }
         public bool IsDll { get; private set; }
 
-        private IntPtr moduleBase = IntPtr.Zero;
-        private IntPtr ntHeader = IntPtr.Zero;
-        private IntPtr[] importedModuleHandles;
+        private Pointer moduleBase = Pointer.Zero;
+        private Pointer ntHeader = Pointer.Zero;
+        private Pointer[] importedModuleHandles;
         private bool isInitialized;
         private DllEntryDelegate dllEntry;
         private ExeEntryDelegate exeEntry;
@@ -120,7 +120,7 @@ namespace StealthModule
             return res;
         }
 
-        IntPtr GetPtrFromFuncName(string funcName)
+        internal Pointer GetPtrFromFuncName(string funcName)
         {
             if (Disposed)
                 throw new ObjectDisposedException(nameof(MemoryModule));
@@ -131,30 +131,30 @@ namespace StealthModule
             if (!isInitialized)
                 throw new InvalidOperationException("Dll is not initialized");
 
-            var pDirectory = ntHeader.Add(Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable));
+            var pDirectory = ntHeader + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable);
             var Directory = pDirectory.Read<IMAGE_DATA_DIRECTORY>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");
 
-            var pExports = moduleBase.Add(Directory.VirtualAddress);
+            var pExports = moduleBase + Directory.VirtualAddress;
             var Exports = pExports.Read<IMAGE_EXPORT_DIRECTORY>();
             if (Exports.NumberOfFunctions == 0 || Exports.NumberOfNames == 0)
                 throw new ModuleException("Dll exports no functions");
 
-            var pNameRef = moduleBase.Add(Exports.AddressOfNames);
-            var pOrdinal = moduleBase.Add(Exports.AddressOfNameOrdinals);
-            for (var i = 0; i < Exports.NumberOfNames; i++, pNameRef = pNameRef.Add(sizeof(uint)), pOrdinal = pOrdinal.Add(sizeof(ushort)))
+            var pNameRef = moduleBase + Exports.AddressOfNames;
+            var pOrdinal = moduleBase + Exports.AddressOfNameOrdinals;
+            for (var i = 0; i < Exports.NumberOfNames; i++, pNameRef += sizeof(uint), pOrdinal += sizeof(ushort))
             {
                 var NameRef = pNameRef.Read<uint>();
                 var Ordinal = pOrdinal.Read<ushort>();
-                var curFuncName = Marshal.PtrToStringAnsi(moduleBase.Add(NameRef));
+                var curFuncName = Marshal.PtrToStringAnsi(moduleBase + NameRef);
                 if (curFuncName == funcName)
                 {
                     if (Ordinal > Exports.NumberOfFunctions)
                         throw new ModuleException("Invalid function ordinal");
 
-                    var pAddressOfFunction = moduleBase.Add(Exports.AddressOfFunctions + (uint)(Ordinal * 4));
-                    return moduleBase.Add(pAddressOfFunction.Read<uint>());
+                    var pAddressOfFunction = moduleBase + Exports.AddressOfFunctions + (uint)(Ordinal * 4);
+                    return moduleBase + pAddressOfFunction.Read<uint>();
                 }
             }
 
@@ -182,7 +182,7 @@ namespace StealthModule
         /// <returns>True if process is 64bit, false if it is 32bit</returns>
         public static bool Is64BitProcess => IntPtr.Size == 8;
 
-        static uint GetMachineType() => IntPtr.Size == 8 ? Magic.IMAGE_FILE_MACHINE_AMD64 : Magic.IMAGE_FILE_MACHINE_I386;
+        static uint GetMachineType() => Is64BitProcess ? Magic.IMAGE_FILE_MACHINE_AMD64 : Magic.IMAGE_FILE_MACHINE_I386;
 
         static uint AlignValueUp(uint value, uint alignment) => (value + alignment - 1) & ~(alignment - 1);
 
@@ -199,7 +199,7 @@ namespace StealthModule
             if (isInitialized)
             {
                 if (dllEntry != null)
-                    dllEntry.Invoke(moduleBase, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                    dllEntry.Invoke(moduleBase, DllReason.DLL_PROCESS_DETACH, Pointer.Zero);
                 isInitialized = false;
             }
 
@@ -211,11 +211,11 @@ namespace StealthModule
                 importedModuleHandles = null;
             }
 
-            if (moduleBase != IntPtr.Zero)
+            if (moduleBase != Pointer.Zero)
             {
-                NativeMethods.VirtualFree(moduleBase, IntPtr.Zero, AllocationType.RELEASE);
-                moduleBase = IntPtr.Zero;
-                ntHeader = IntPtr.Zero;
+                NativeMethods.VirtualFree(moduleBase, Pointer.Zero, AllocationType.RELEASE);
+                moduleBase = Pointer.Zero;
+                ntHeader = Pointer.Zero;
             }
 
             Disposed = true;

@@ -60,11 +60,12 @@ namespace StealthModule
         public ushort wProcessorRevision;
     };
 
+    // todo: this is not a native struct; move this to other location
     internal struct SectionFinalizeData
     {
-        internal IntPtr Address;
-        internal IntPtr AlignedAddress;
-        internal IntPtr Size;
+        internal Pointer Address;
+        internal Pointer AlignedAddress;
+        internal Pointer Size;
         internal uint Characteristics;
         internal bool Last;
     }
