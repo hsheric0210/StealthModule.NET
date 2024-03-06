@@ -85,9 +85,9 @@ namespace StealthModule
 
             var preferredBaseAddress = (Pointer)(originalNtHeader.OptionalHeader.ImageBaseLong >> (Is64BitProcess ? 0 : 32));
 
-            moduleBase = AllocateModuleMemory(originalNtHeader, alignedImageSize, preferredBaseAddress);
+            moduleBase = AllocateModuleMemory(ref originalNtHeader, alignedImageSize, preferredBaseAddress);
 
-            ntHeader = AllocateAndCopyHeaders(data, originalNtHeader) + dosHeader.e_lfanew;
+            ntHeader = AllocateAndCopyHeaders(moduleBase, ref originalNtHeader, data) + dosHeader.e_lfanew;
 
             var addressDelta = moduleBase - preferredBaseAddress;
             if (addressDelta != Pointer.Zero)
@@ -101,10 +101,10 @@ namespace StealthModule
             }
 
             // copy sections from DLL file block to new memory location
-            CopySections(moduleBase, originalNtHeader, ntHeader, data);
+            CopySections(moduleBase, ref originalNtHeader, ntHeader, data);
 
             // adjust base address of imported data
-            isRelocated = addressDelta == Pointer.Zero || PerformBaseRelocation(ref originalNtHeader, moduleBase, addressDelta);
+            isRelocated = addressDelta == Pointer.Zero || PerformBaseRelocation(moduleBase, ref originalNtHeader, addressDelta);
 
             // load required dlls and adjust function table of imports
             importedModuleHandles = BuildImportTable(ref originalNtHeader, moduleBase);
@@ -137,27 +137,27 @@ namespace StealthModule
             }
         }
 
-        private Pointer AllocateAndCopyHeaders(byte[] data, IMAGE_NT_HEADERS ntHeader)
+        private static Pointer AllocateAndCopyHeaders(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, byte[] data)
         {
             // commit memory for headers
-            var headers = NativeMethods.VirtualAlloc(moduleBase, ntHeader.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
+            var headers = NativeMethods.VirtualAlloc(moduleBase, ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
             if (headers == Pointer.Zero)
                 throw new OutOfMemoryException("Header memory");
 
             // copy PE header to code
-            Marshal.Copy(data, 0, headers, (int)ntHeader.OptionalHeader.SizeOfHeaders);
+            Marshal.Copy(data, 0, headers, (int)ntHeadersData.OptionalHeader.SizeOfHeaders);
             return headers;
         }
 
-        private static Pointer AllocateModuleMemory(IMAGE_NT_HEADERS OrgNTHeaders, uint alignedImageSize, Pointer oldHeader_OptionalHeader_ImageBase)
+        private static Pointer AllocateModuleMemory(ref IMAGE_NT_HEADERS ntHeadersData, uint alignedImageSize, Pointer preferredBaseAddress)
         {
             // reserve memory for image of library
-            var mem = NativeMethods.VirtualAlloc(oldHeader_OptionalHeader_ImageBase, OrgNTHeaders.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+            var mem = NativeMethods.VirtualAlloc(preferredBaseAddress, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
             //pCode = Pointer.Zero; //test relocation with this
 
             // try to allocate memory at arbitrary position
             if (mem == Pointer.Zero)
-                mem = NativeMethods.VirtualAlloc(Pointer.Zero, OrgNTHeaders.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+                mem = NativeMethods.VirtualAlloc(Pointer.Zero, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
 
             if (mem == Pointer.Zero)
                 throw new OutOfMemoryException("Module memory");
@@ -182,7 +182,7 @@ namespace StealthModule
             return mem;
         }
 
-        private static void CopySections(Pointer moduleBase, IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, byte[] data)
+        private static void CopySections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, byte[] data)
         {
             var sectionBase = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionBase += Sz.IMAGE_SECTION_HEADER)
@@ -226,49 +226,50 @@ namespace StealthModule
             }
         }
 
-        static bool PerformBaseRelocation(ref IMAGE_NT_HEADERS OrgNTHeaders, Pointer pCode, Pointer delta)
+        private static bool PerformBaseRelocation(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer delta)
         {
-            if (OrgNTHeaders.OptionalHeader.BaseRelocationTable.Size == 0)
+            if (ntHeadersData.OptionalHeader.BaseRelocationTable.Size == 0)
                 return delta == Pointer.Zero;
 
-            for (var pRelocation = pCode + OrgNTHeaders.OptionalHeader.BaseRelocationTable.VirtualAddress; ;)
+            for (var relocationTableAddress = moduleBase + ntHeadersData.OptionalHeader.BaseRelocationTable.VirtualAddress; ;)
             {
-                var Relocation = pRelocation.Read<IMAGE_BASE_RELOCATION>();
-                if (Relocation.VirtualAdress == 0)
+                var relocationTable = relocationTableAddress.Read<IMAGE_BASE_RELOCATION>();
+                if (relocationTable.VirtualAdress == 0)
                     break;
 
-                var pDest = pCode + Relocation.VirtualAdress;
-                var pRelInfo = pRelocation + Sz.IMAGE_BASE_RELOCATION;
-                var RelCount = (Relocation.SizeOfBlock - Sz.IMAGE_BASE_RELOCATION) / 2;
-                for (uint i = 0; i != RelCount; i++, pRelInfo += sizeof(ushort))
+                var relocationBaseAddress = moduleBase + relocationTable.VirtualAdress;
+                var relocationInfoAddress = relocationTableAddress + Sz.IMAGE_BASE_RELOCATION;
+                var relocationCount = (relocationTable.SizeOfBlock - Sz.IMAGE_BASE_RELOCATION) / 2;
+                for (uint i = 0; i != relocationCount; i++, relocationInfoAddress += sizeof(ushort))
                 {
-                    var relInfo = (ushort)Marshal.PtrToStructure(pRelInfo, typeof(ushort));
-                    var type = (BasedRelocationType)(relInfo >> 12); // the upper 4 bits define the type of relocation
-                    var offset = relInfo & 0xfff; // the lower 12 bits define the offset
-                    var pPatchAddr = pDest + offset;
+                    var relocationInfos = (ushort)Marshal.PtrToStructure(relocationInfoAddress, typeof(ushort));
+                    var relocationType = (BasedRelocationType)(relocationInfos >> 12); // the upper 4 bits define the type of relocation
+                    var relocationOffset = relocationInfos & 0xfff; // the lower 12 bits define the offset
+                    var patchAddress = relocationBaseAddress + relocationOffset;
 
-                    switch (type)
+                    switch (relocationType)
                     {
                         case BasedRelocationType.IMAGE_REL_BASED_ABSOLUTE:
                             // skip relocation
                             break;
                         case BasedRelocationType.IMAGE_REL_BASED_HIGHLOW:
                             // change complete 32 bit address
-                            var patchAddrHL = (int)Marshal.PtrToStructure(pPatchAddr, typeof(int));
-                            patchAddrHL += (int)delta;
-                            Marshal.StructureToPtr(patchAddrHL, pPatchAddr, false);
+                            var patchAddressHighLow = (int)Marshal.PtrToStructure(patchAddress, typeof(int));
+                            patchAddressHighLow += (int)delta;
+                            Marshal.StructureToPtr(patchAddressHighLow, patchAddress, false);
                             break;
                         case BasedRelocationType.IMAGE_REL_BASED_DIR64:
-                            var patchAddr64 = (long)Marshal.PtrToStructure(pPatchAddr, typeof(long));
-                            patchAddr64 += (long)delta;
-                            Marshal.StructureToPtr(patchAddr64, pPatchAddr, false);
+                            var patchAddress64 = (long)Marshal.PtrToStructure(patchAddress, typeof(long));
+                            patchAddress64 += (long)delta;
+                            Marshal.StructureToPtr(patchAddress64, patchAddress, false);
                             break;
                     }
                 }
 
                 // advance to next relocation block
-                pRelocation += Relocation.SizeOfBlock;
+                relocationTableAddress += relocationTable.SizeOfBlock;
             }
+
             return true;
         }
 
