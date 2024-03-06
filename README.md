@@ -26,6 +26,10 @@ Some enhancements are applied:
 
 ## How to use
 
+### [MemoryModule](StealthModule/ExportResolver.md)
+
+### [ExportResolver](StealthModule/ExportResolver.md)
+
 ## How to reference this project from your project
 
 ### Solution 1 - git submodule
