@@ -61,18 +61,30 @@ namespace StealthModule
             }
         };
 
+        private struct SectionFinalizeData
+        {
+            public Pointer Address;
+            public Pointer AlignedAddress;
+            public Pointer Size;
+            public uint Characteristics;
+            public bool Last;
+        }
+
         private static void FinalizeSections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, uint pageSize)
         {
             var imageOffset = Is64BitProcess ? (Pointer)((ulong)moduleBase & 0xffffffff00000000) : Pointer.Zero;
             var sectionHeaderAddress = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             var sectionHeader = sectionHeaderAddress.Read<IMAGE_SECTION_HEADER>();
 
-            var sectionData = new SectionFinalizeData();
-            sectionData.Address = sectionHeader.PhysicalAddress | imageOffset;
-            sectionData.AlignedAddress = sectionData.Address.AlignDown((UIntPtr)pageSize);
-            sectionData.Size = GetRealSectionSize(ref sectionHeader, ref ntHeadersData);
-            sectionData.Characteristics = sectionHeader.Characteristics;
-            sectionData.Last = false;
+            var sectionAddress = sectionHeader.PhysicalAddress | imageOffset;
+            var sectionData = new SectionFinalizeData
+            {
+                Address = sectionAddress,
+                AlignedAddress = sectionAddress.AlignDown((UIntPtr)pageSize),
+                Size = GetRealSectionSize(ref sectionHeader, ref ntHeadersData),
+                Characteristics = sectionHeader.Characteristics,
+                Last = false,
+            };
 
             sectionHeaderAddress += Sz.IMAGE_SECTION_HEADER;
 
@@ -80,7 +92,6 @@ namespace StealthModule
             for (var i = 1; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionHeaderAddress += Sz.IMAGE_SECTION_HEADER)
             {
                 sectionHeader = sectionHeaderAddress.Read<IMAGE_SECTION_HEADER>();
-                var sectionAddress = sectionHeader.PhysicalAddress | imageOffset;
                 var alignedAddress = sectionAddress.AlignDown((UIntPtr)pageSize);
                 var sectionSize = GetRealSectionSize(ref sectionHeader, ref ntHeadersData);
 
