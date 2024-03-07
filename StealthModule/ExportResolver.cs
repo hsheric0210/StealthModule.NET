@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -8,8 +9,74 @@ namespace StealthModule
     /// Codes in this class are copied from DInvoke project:
     /// https://github.com/TheWover/DInvoke
     /// </summary>
-    public static class ExportResolver
+    public partial class ExportResolver
     {
+        private readonly Pointer moduleBase;
+
+        private readonly IDictionary<string, Pointer> nameMapping = new Dictionary<string, Pointer>();
+        private readonly IDictionary<int, Pointer> ordinalMapping = new Dictionary<int, Pointer>();
+
+        public ExportResolver(Pointer moduleBase) => this.moduleBase = moduleBase;
+
+        public ExportResolver(string moduleName) : this(GetModuleHandle(moduleName, throwIfNotFound: true)) { }
+
+        public void CacheAllExports()
+        {
+            WalkEDT(moduleBase, entry =>
+            {
+                nameMapping[entry.FunctionName] = entry.FunctionAddress;
+                ordinalMapping[entry.FunctionOrdinal] = entry.FunctionAddress;
+                return false; // Iterate through all export entries
+            });
+        }
+
+        public Pointer GetExport(string functionName)
+        {
+            if (nameMapping.TryGetValue(functionName, out var pointer))
+                return pointer;
+
+            var address = Pointer.Zero;
+            WalkEDT(moduleBase, entry =>
+            {
+                if (string.Equals(entry.FunctionName, functionName, StringComparison.OrdinalIgnoreCase))
+                {
+                    address = entry.FunctionAddress;
+                    return true; // break
+                }
+
+                return false; // continue
+            });
+
+            return nameMapping[functionName] = address;
+        }
+
+        public Pointer GetExport(short functionOrdinal)
+        {
+            if (ordinalMapping.TryGetValue(functionOrdinal, out var pointer))
+                return pointer;
+
+            var address = Pointer.Zero;
+            WalkEDT(moduleBase, entry =>
+            {
+                if (entry.FunctionOrdinal == functionOrdinal)
+                {
+                    address = entry.FunctionAddress;
+                    return true; // break
+                }
+
+                return false; // continue
+            });
+
+            return ordinalMapping[functionOrdinal] = address;
+        }
+
+        public struct ExportEntry
+        {
+            public string FunctionName;
+            public int FunctionOrdinal;
+            public Pointer FunctionAddress;
+        }
+
         /// <summary>
         /// Helper for getting the base address of a module loaded by the current process. This base
         /// address could be passed to GetProcAddress/LdrGetProcedureAddress or it could be used for
@@ -36,17 +103,13 @@ namespace StealthModule
         }
 
         /// <summary>
-        /// Given a module base address, resolve the address of a list of functions by manually walking the module export table.
+        /// Walk through the Export directory, calling the callback function for each Export entry.
         /// </summary>
-        /// <author>Ruben Boonen (@FuzzySec)</author>
-        /// <param name="moduleBase">A pointer to the base address where the module is loaded in the current process.</param>
-        /// <param name="exportNames">The name list of the exports to search for (e.g. <c>new string[]{"NtAlertResumeThread"}</c>).</param>
-        /// <param name="throwIfNotFound">Throw the <c>DLLException</c> when any of the exports are not found from the specified module.</param>
-        /// <returns>IntPtr for the desired function.</returns>
-        /// <exception cref="ModuleException">Thrown when <paramref name="throwIfNotFound"/> is <c>true</c> and any of the specified exports are not found from the specified module <paramref name="moduleBase"/>.</exception>
-        public static Pointer[] ResolveExports(Pointer moduleBase, string[] exportNames, bool throwIfNotFound = false)
+        /// <param name="moduleBase">The base address of the module in memory.</param>
+        /// <param name="callback">Callback function for each Export entry. Return <c>true</c> from the callback to stop the iteration.</param>
+        /// <exception cref="ModuleException"></exception>
+        public static void WalkEDT(Pointer moduleBase, Func<ExportEntry, bool> callback)
         {
-            var functionPtrs = new Pointer[exportNames.Length];
             try
             {
                 // Traverse the PE header in memory
@@ -72,15 +135,18 @@ namespace StealthModule
                 for (var i = 0; i < numberOfNames; i++)
                 {
                     var FunctionName = Marshal.PtrToStringAnsi(moduleBase + Marshal.ReadInt32(moduleBase + namesRVA + i * 4));
-                    for (var j = 0; j < exportNames.Length; j++)
+                    var FunctionOrdinal = Marshal.ReadInt16(moduleBase + ordinalsRVA + i * 2) + ordinalBase;
+                    var FunctionRVA = Marshal.ReadInt32(moduleBase + functionsRVA + 4 * (FunctionOrdinal - ordinalBase));
+
+                    var entry = new ExportEntry
                     {
-                        if (FunctionName.Equals(exportNames[j], StringComparison.OrdinalIgnoreCase))
-                        {
-                            var FunctionOrdinal = Marshal.ReadInt16(moduleBase + ordinalsRVA + i * 2) + ordinalBase;
-                            var FunctionRVA = Marshal.ReadInt32(moduleBase + functionsRVA + 4 * (FunctionOrdinal - ordinalBase));
-                            functionPtrs[j] = (long)moduleBase + FunctionRVA;
-                        }
-                    }
+                        FunctionName = FunctionName,
+                        FunctionOrdinal = FunctionOrdinal,
+                        FunctionAddress = moduleBase + FunctionRVA,
+                    };
+
+                    if (callback(entry))
+                        break; // if callback returns true, stop the iteration.
                 }
             }
             catch
@@ -88,38 +154,6 @@ namespace StealthModule
                 // Catch parser failure
                 throw new ModuleException("Failed to parse module exports.");
             }
-
-            if (throwIfNotFound)
-            {
-                for (var i = 0; i < functionPtrs.Length; i++)
-                {
-                    if (functionPtrs[i] == Pointer.Zero)
-                        throw new ModuleException("Address for function " + exportNames[i] + " not found.");
-                }
-            }
-
-            return functionPtrs;
-        }
-
-        public static Pointer[] ResolveExports(string moduleName, string[] exportNames, bool throwIfNotFound = false)
-        {
-            var moduleHandle = GetModuleHandle(moduleName, throwIfNotFound);
-            if (moduleHandle == Pointer.Zero)
-                return new Pointer[exportNames.Length];
-
-            return ResolveExports(moduleHandle, exportNames, throwIfNotFound);
-        }
-
-        public static Pointer ResolveExport(Pointer moduleBase, string exportName)
-            => ResolveExports(moduleBase, new string[] { exportName })[0];
-
-        public static Pointer ResolveExport(string moduleName, string exportName, bool throwIfNotFound = false)
-        {
-            var moduleHandle = GetModuleHandle(moduleName, throwIfNotFound);
-            if (moduleHandle == Pointer.Zero)
-                return Pointer.Zero;
-
-            return ResolveExport(moduleHandle, exportName);
         }
     }
 }
