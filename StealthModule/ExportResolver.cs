@@ -8,7 +8,7 @@ namespace StealthModule
     /// Codes in this class are copied from DInvoke project:
     /// https://github.com/TheWover/DInvoke
     /// </summary>
-    public class ExportResolver
+    public static class ExportResolver
     {
         /// <summary>
         /// Helper for getting the base address of a module loaded by the current process. This base
@@ -51,11 +51,10 @@ namespace StealthModule
             {
                 // Traverse the PE header in memory
                 var ntHeaders = Marshal.ReadInt32(moduleBase + 0x3C);
-                var optionalHeaderSize = Marshal.ReadInt16(moduleBase + ntHeaders + 0x14);
                 var optionalHeader = moduleBase + ntHeaders + 0x18;
                 var optionalHeaderMagic = Marshal.ReadInt16(optionalHeader);
 
-                var edtAddress = Pointer.Zero;
+                Pointer edtAddress;
                 if (optionalHeaderMagic == 0x010b) // NT64
                     edtAddress = optionalHeader + 0x60;
                 else
@@ -64,7 +63,6 @@ namespace StealthModule
                 // Read -> IMAGE_EXPORT_DIRECTORY
                 var edtRVA = Marshal.ReadInt32(edtAddress);
                 var ordinalBase = Marshal.ReadInt32(moduleBase + edtRVA + 0x10);
-                //var numberOfFunctions = Marshal.ReadInt32(moduleBase + edtRVA + 0x14);
                 var numberOfNames = Marshal.ReadInt32(moduleBase + edtRVA + 0x18);
                 var functionsRVA = Marshal.ReadInt32(moduleBase + edtRVA + 0x1C);
                 var namesRVA = Marshal.ReadInt32(moduleBase + edtRVA + 0x20);
