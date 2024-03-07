@@ -32,6 +32,8 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
+[Bb]in.netcore/
+[Oo]bj.netcore/
 [Ll]og/
 [Ll]ogs/
 
