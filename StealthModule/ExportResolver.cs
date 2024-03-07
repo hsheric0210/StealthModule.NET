@@ -16,6 +16,10 @@ namespace StealthModule
         private readonly IDictionary<string, Pointer> nameMapping = new Dictionary<string, Pointer>();
         private readonly IDictionary<int, Pointer> ordinalMapping = new Dictionary<int, Pointer>();
 
+        public Pointer this[string functionName] => GetExport(functionName);
+
+        public Pointer this[short functionOrdinal] => GetExport(functionOrdinal);
+
         public ExportResolver(Pointer moduleBase) => this.moduleBase = moduleBase;
 
         public ExportResolver(string moduleName) : this(GetModuleHandle(moduleName, throwIfNotFound: true)) { }

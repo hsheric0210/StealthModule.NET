@@ -83,24 +83,15 @@ namespace StealthModule
             if (nativeInitialized)
                 return;
 
-            var exports = new string[] {
-                 "LoadLibraryA",
-                 "FreeLibrary",
-                 "VirtualAlloc",
-                 "VirtualFree",
-                 "VirtualProtect",
-                 "GetNativeSystemInfo",
-                 "GetProcAddress",
-            };
-
-            var addresses = ExportResolver.ResolveExports("kernel32.dll", exports, true);
-            loadLibrary = Marshal.GetDelegateForFunctionPointer<DLoadLibrary>(addresses[0]);
-            freeLibrary = Marshal.GetDelegateForFunctionPointer<DFreeLibrary>(addresses[1]);
-            virtualAlloc = Marshal.GetDelegateForFunctionPointer<DVirtualAlloc>(addresses[2]);
-            virtualFree = Marshal.GetDelegateForFunctionPointer<DVirtualFree>(addresses[3]);
-            virtualProtect = Marshal.GetDelegateForFunctionPointer<DVirtualProtect>(addresses[4]);
-            getNativeSystemInfo = Marshal.GetDelegateForFunctionPointer<DGetNativeSystemInfo>(addresses[5]);
-            getProcAddress = Marshal.GetDelegateForFunctionPointer<DGetProcAddress>(addresses[6]);
+            var addresses = new ExportResolver("kernel32.dll");
+            addresses.CacheAllExports(); // A bit overkill, but it is much more efficient.
+            loadLibrary = Marshal.GetDelegateForFunctionPointer<DLoadLibrary>(addresses["LoadLibraryA"]);
+            freeLibrary = Marshal.GetDelegateForFunctionPointer<DFreeLibrary>(addresses["FreeLibrary"]);
+            virtualAlloc = Marshal.GetDelegateForFunctionPointer<DVirtualAlloc>(addresses["VirtualAlloc"]);
+            virtualFree = Marshal.GetDelegateForFunctionPointer<DVirtualFree>(addresses["VirtualFree"]);
+            virtualProtect = Marshal.GetDelegateForFunctionPointer<DVirtualProtect>(addresses["VirtualProtect"]);
+            getNativeSystemInfo = Marshal.GetDelegateForFunctionPointer<DGetNativeSystemInfo>(addresses["GetNativeSystemInfo"]);
+            getProcAddress = Marshal.GetDelegateForFunctionPointer<DGetProcAddress>(addresses["GetProcAddress"]);
             nativeInitialized = true;
         }
     }
