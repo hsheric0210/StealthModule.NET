@@ -5,6 +5,8 @@ VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StealthModule", "StealthModule\StealthModule.csproj", "{2EFC65A7-0B03-4905-8765-C66792D9F829}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StealthModule.NETCore", "StealthModule\StealthModule.NETCore.csproj", "{6D6C24F7-C29A-483F-90E0-C8F02BAECB19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{2EFC65A7-0B03-4905-8765-C66792D9F829}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2EFC65A7-0B03-4905-8765-C66792D9F829}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2EFC65A7-0B03-4905-8765-C66792D9F829}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D6C24F7-C29A-483F-90E0-C8F02BAECB19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D6C24F7-C29A-483F-90E0-C8F02BAECB19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D6C24F7-C29A-483F-90E0-C8F02BAECB19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D6C24F7-C29A-483F-90E0-C8F02BAECB19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <!-- Note: We cannot use the recommended style of specifying <Project Sdk=...> because we need to set BaseIntermediateOutputPath and BaseOutputPath before the SDK props are imported. -->
+    <!-- The idea is from CefSharp.NETCore -->
+
+    <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+    <PropertyGroup>
+        <BaseIntermediateOutputPath>obj.netcore\</BaseIntermediateOutputPath>
+        <BaseOutputPath>bin.netcore\</BaseOutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFrameworks>netcoreapp3.1;net6.0-windows</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Don't include items from the "bin" and "obj" folders used by the .NET Framework projects. -->
+        <None Remove="bin/**/*.*" />
+        <None Remove="obj/**/*.*" />
+        <Compile Remove="obj/**/*.*" />
+    </ItemGroup>
+
+    <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>
