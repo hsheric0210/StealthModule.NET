@@ -63,7 +63,7 @@ namespace StealthModule
 
         private static void FinalizeSections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, uint pageSize)
         {
-            var imageOffset = Is64BitProcess ? ((ulong)moduleBase & 0xffffffff00000000) : Pointer.Zero;
+            var imageOffset = Is64BitProcess ? (Pointer)((ulong)moduleBase & 0xffffffff00000000) : Pointer.Zero;
             var sectionHeaderAddress = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             var sectionHeader = sectionHeaderAddress.Read<IMAGE_SECTION_HEADER>();
 

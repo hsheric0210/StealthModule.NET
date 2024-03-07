@@ -68,7 +68,7 @@ namespace StealthModule
         public Pointer AlignDown(UIntPtr align) => (Pointer)(value.ToUInt64() & ~(align.ToUInt64() - 1));
         public bool SpanBoundary(uint Size, int BoundaryBits) => value.ToUInt64() >> BoundaryBits < (value.ToUInt64() + Size) >> BoundaryBits;
 
-        public bool IsInvalidHandle() => value == UIntPtr.Zero || value == (Is64Bit ? (UIntPtr)unchecked((ulong)-1L) : (UIntPtr)unchecked((uint)-1));
+        public bool IsInvalidHandle() => value == UIntPtr.Zero || value == (Is64Bit ? unchecked((UIntPtr)(ulong)-1L) : unchecked((UIntPtr)(uint)-1));
 
         // Comparison operator
 
