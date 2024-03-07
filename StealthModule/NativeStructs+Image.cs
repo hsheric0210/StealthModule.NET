@@ -90,7 +90,7 @@ namespace StealthModule
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    struct IMAGE_OPTIONAL_HEADER
+    internal struct IMAGE_OPTIONAL_HEADER
     {
         public MagicType Magic;
         public byte MajorLinkerVersion;
