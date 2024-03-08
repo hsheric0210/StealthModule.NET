@@ -85,13 +85,13 @@ namespace StealthModule
 
             var kernel32 = new ExportResolver("kernel32.dll");
             kernel32.CacheAllExports(); // A bit overkill, but it is much more efficient.
-            loadLibrary = (DLoadLibrary)Marshal.GetDelegateForFunctionPointer(kernel32["LoadLibraryA"], typeof(DLoadLibrary));
-            freeLibrary = (DFreeLibrary)Marshal.GetDelegateForFunctionPointer(kernel32["FreeLibrary"], typeof(DFreeLibrary));
-            virtualAlloc = (DVirtualAlloc)Marshal.GetDelegateForFunctionPointer(kernel32["VirtualAlloc"], typeof(DVirtualAlloc));
-            virtualFree = (DVirtualFree)Marshal.GetDelegateForFunctionPointer(kernel32["VirtualFree"], typeof(DVirtualFree));
-            virtualProtect = (DVirtualProtect)Marshal.GetDelegateForFunctionPointer(kernel32["VirtualProtect"], typeof(DVirtualProtect));
-            getNativeSystemInfo = (DGetNativeSystemInfo)Marshal.GetDelegateForFunctionPointer(kernel32["GetNativeSystemInfo"], typeof(DGetNativeSystemInfo));
-            getProcAddress = (DGetProcAddress)Marshal.GetDelegateForFunctionPointer(kernel32["GetProcAddress"], typeof(DGetProcAddress));
+            loadLibrary = (DLoadLibrary)kernel32.GetExport("LoadLibraryA", typeof(DLoadLibrary));
+            freeLibrary = (DFreeLibrary)kernel32.GetExport("FreeLibrary", typeof(DFreeLibrary));
+            virtualAlloc = (DVirtualAlloc)kernel32.GetExport("VirtualAlloc", typeof(DVirtualAlloc));
+            virtualFree = (DVirtualFree)kernel32.GetExport("VirtualFree", typeof(DVirtualFree));
+            virtualProtect = (DVirtualProtect)kernel32.GetExport("VirtualProtect", typeof(DVirtualProtect));
+            getNativeSystemInfo = (DGetNativeSystemInfo)kernel32.GetExport("GetNativeSystemInfo", typeof(DGetNativeSystemInfo));
+            getProcAddress = (DGetProcAddress)kernel32.GetExport("GetProcAddress", typeof(DGetProcAddress));
             nativeInitialized = true;
         }
     }
