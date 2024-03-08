@@ -4,24 +4,27 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        static void FinalizeSections(ref ImageNtHeaders OrgNTHeaders, Pointer pCode, Pointer pNTHeaders, uint PageSize)
+        private static void FinalizeSections(ref ImageNtHeaders OrgNTHeaders, Pointer pCode, Pointer pNTHeaders, uint PageSize)
         {
             var imageOffset = Is64BitProcess ? (UIntPtr)(((ulong)pCode) & 0xffffffff00000000) : UIntPtr.Zero;
             var sectionOffset = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
             var sectionHeader = sectionOffset.Read<ImageSectionHeader>();
-            var sectionData = new SectionFinalizeData();
-            sectionData.Address = (Pointer.Zero + sectionHeader.PhysicalAddress) | imageOffset;
-            sectionData.AlignedAddress = sectionData.Address.AlignDown((UIntPtr)PageSize);
-            sectionData.Size = GetRealSectionSize(ref sectionHeader, ref OrgNTHeaders);
-            sectionData.Characteristics = sectionHeader.Characteristics;
-            sectionData.Last = false;
+            var sectionAddress = (Pointer.Zero + sectionHeader.PhysicalAddress) | imageOffset;
+            var sectionData = new SectionFinalizeData
+            {
+                Address = sectionAddress,
+                AlignedAddress = sectionAddress.AlignDown((UIntPtr)PageSize),
+                Size = GetRealSectionSize(ref sectionHeader, ref OrgNTHeaders),
+                Characteristics = sectionHeader.Characteristics,
+                Last = false
+            };
             sectionOffset += NativeSizes.IMAGE_SECTION_HEADER;
 
             // loop through all sections and change access flags
             for (var i = 1; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, sectionOffset += NativeSizes.IMAGE_SECTION_HEADER)
             {
                 sectionHeader = sectionOffset.Read<ImageSectionHeader>();
-                var sectionAddress = (Pointer.Zero + sectionHeader.PhysicalAddress) | imageOffset;
+                sectionAddress = (Pointer.Zero + sectionHeader.PhysicalAddress) | imageOffset;
                 var alignedAddress = sectionAddress.AlignDown((UIntPtr)PageSize);
                 var sectionSize = GetRealSectionSize(ref sectionHeader, ref OrgNTHeaders);
 
@@ -54,7 +57,7 @@ namespace StealthModule
             FinalizeSection(sectionData, PageSize, OrgNTHeaders.OptionalHeader.SectionAlignment);
         }
 
-        static void FinalizeSection(SectionFinalizeData sectionData, uint pageSize, uint sectionAlignment)
+        private static void FinalizeSection(SectionFinalizeData sectionData, uint pageSize, uint sectionAlignment)
         {
             if (sectionData.Size == Pointer.Zero)
                 return;
@@ -87,7 +90,7 @@ namespace StealthModule
                 throw new ModuleException("Error protecting memory page");
         }
 
-        static Pointer GetRealSectionSize(ref ImageSectionHeader section, ref ImageNtHeaders ntHeaders)
+        private static Pointer GetRealSectionSize(ref ImageSectionHeader section, ref ImageNtHeaders ntHeaders)
         {
             var size = section.SizeOfRawData;
             if (size == 0)
@@ -105,7 +108,7 @@ namespace StealthModule
         }
 
         // Protection flags for memory pages (Executable, Readable, Writeable)
-        static readonly MemoryProtection[,,] protectionFlags = new MemoryProtection[2, 2, 2]
+        private static readonly MemoryProtection[,,] protectionFlags = new MemoryProtection[2, 2, 2]
         {
         {
             // not executable
@@ -119,7 +122,7 @@ namespace StealthModule
         }
         };
 
-        struct SectionFinalizeData
+        private struct SectionFinalizeData
         {
             internal Pointer Address;
             internal Pointer AlignedAddress;

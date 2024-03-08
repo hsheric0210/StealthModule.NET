@@ -5,7 +5,7 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        static Pointer[] BuildImportTable(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress)
+        private static Pointer[] BuildImportTable(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress)
         {
             var importModuleBaseAddresses = new System.Collections.Generic.List<Pointer>();
             var numEntries = ntHeadersData.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;

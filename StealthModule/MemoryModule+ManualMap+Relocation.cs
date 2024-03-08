@@ -4,7 +4,7 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        static bool PerformBaseRelocation(ref ImageNtHeaders ntHeaders, Pointer moduleBaseAddress, Pointer delta)
+        private static bool PerformBaseRelocation(ref ImageNtHeaders ntHeaders, Pointer moduleBaseAddress, Pointer delta)
         {
             if (ntHeaders.OptionalHeader.BaseRelocationTable.Size == 0)
                 return delta == Pointer.Zero;

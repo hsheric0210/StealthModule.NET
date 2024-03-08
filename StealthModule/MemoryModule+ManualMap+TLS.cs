@@ -6,9 +6,9 @@ namespace StealthModule
     public partial class MemoryModule
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        delegate void ImageTlsDelegate(IntPtr dllHandle, DllReason reason, IntPtr reserved);
+        private delegate void ImageTlsDelegate(IntPtr dllHandle, DllReason reason, IntPtr reserved);
 
-        static void ExecuteTLS(ref ImageNtHeaders ntHeaders, Pointer moduleBaseAddress)
+        private static void ExecuteTLS(ref ImageNtHeaders ntHeaders, Pointer moduleBaseAddress)
         {
             if (ntHeaders.OptionalHeader.TLSTable.VirtualAddress == 0)
                 return;

@@ -8,19 +8,19 @@ namespace StealthModule
         public bool Disposed { get; private set; }
         public bool IsDll { get; private set; }
 
-        Pointer moduleBaseAddress = Pointer.Zero;
-        Pointer ntHeadersAddress = Pointer.Zero;
-        Pointer[] importModuleBaseAddresses;
-        bool wasDllMainSuccessful = false;
-        DllEntryDelegate dllEntryPoint = null;
-        ExeEntryDelegate exeEntryPoint = null;
-        bool isRelocated = false;
+        private Pointer moduleBaseAddress = Pointer.Zero;
+        private Pointer ntHeadersAddress = Pointer.Zero;
+        private Pointer[] importModuleBaseAddresses;
+        private bool wasDllMainSuccessful;
+        private DllEntryDelegate dllEntryPoint;
+        private ExeEntryDelegate exeEntryPoint;
+        private bool isRelocated;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
+        private delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        delegate int ExeEntryDelegate();
+        private delegate int ExeEntryDelegate();
 
         /// <summary>
         /// Loads a unmanged (native) DLL in the memory.

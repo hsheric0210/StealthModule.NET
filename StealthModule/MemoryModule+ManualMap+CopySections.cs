@@ -5,7 +5,7 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        static void CopySections(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress, Pointer ntHeadersAddress, byte[] data)
+        private static void CopySections(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress, Pointer ntHeadersAddress, byte[] data)
         {
             var sectionOffset = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionOffset += NativeSizes.IMAGE_SECTION_HEADER)

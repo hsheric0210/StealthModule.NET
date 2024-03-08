@@ -5,7 +5,7 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        void ManualMap(byte[] data)
+        private void ManualMap(byte[] data)
         {
             if (data.Length < Marshal.SizeOf(typeof(ImageDosHeader)))
                 throw new ModuleException("Not a valid executable file");
@@ -94,8 +94,8 @@ namespace StealthModule
             }
         }
 
-        static uint GetMachineType() => Is64BitProcess ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;
+        private static uint GetMachineType() => Is64BitProcess ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;
 
-        static uint AlignValueUp(uint value, uint alignment) => (value + alignment - 1) & ~(alignment - 1);
+        private static uint AlignValueUp(uint value, uint alignment) => (value + alignment - 1) & ~(alignment - 1);
     }
 }
