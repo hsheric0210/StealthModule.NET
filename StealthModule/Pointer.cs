@@ -22,10 +22,10 @@ namespace StealthModule
 
         public static implicit operator Pointer(IntPtr value) => new Pointer(value);
         public static implicit operator Pointer(UIntPtr value) => new Pointer((IntPtr)unchecked((long)value.ToUInt64()));
-        public static implicit operator Pointer(long value) => new Pointer((IntPtr)value);
-        //public static implicit operator Pointer(ulong value) => new Pointer((IntPtr)unchecked((long)value));
-        public static implicit operator Pointer(int value) => new Pointer((IntPtr)value);
-        //public static implicit operator Pointer(uint value) => new Pointer((IntPtr)value); // auto cast: uint -> long
+        public static explicit operator Pointer(long value) => new Pointer((IntPtr)value);
+        public static explicit operator Pointer(ulong value) => new Pointer((IntPtr)unchecked((long)value));
+        public static explicit operator Pointer(int value) => new Pointer((IntPtr)value);
+        public static explicit operator Pointer(uint value) => new Pointer((IntPtr)unchecked((int)value));
 
         // (Auto-)Unboxing functions (Pointer -> object)
 
@@ -45,21 +45,64 @@ namespace StealthModule
         public void Write<T>(T buffer) => Marshal.StructureToPtr(buffer, this, false);
         public void Write(Pointer buffer) => Marshal.StructureToPtr((IntPtr)buffer, this, false);
 
-        // Pointer arithmetics
+        // Pointer arithmetics - Add
 
-        public static Pointer operator +(Pointer value, Pointer offset) => value + offset.value;
-        public static Pointer operator +(Pointer value, IntPtr offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() + offset.ToInt64()) : (IntPtr)(value.value.ToInt32() + offset.ToInt32());
-        public static Pointer operator +(Pointer value, UIntPtr offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset.ToUInt64())) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset.ToUInt32()));
-        public static Pointer operator +(Pointer value, int offset) => value.value.ToInt64() + offset;
-        public static Pointer operator +(Pointer value, uint offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset)) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset));
+        public static Pointer operator +(Pointer value, Pointer offset)
+            => value + offset.value;
 
-        public static Pointer operator -(Pointer value, IntPtr offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() - offset.ToInt64()) : (IntPtr)(value.value.ToInt32() - offset.ToInt32());
+        public static Pointer operator +(Pointer value, IntPtr offset)
+            => Is64Bit
+                ? (Pointer)(value.value.ToInt64() + offset.ToInt64())
+                : (Pointer)(value.value.ToInt32() + offset.ToInt32());
+
+        public static Pointer operator +(Pointer value, UIntPtr offset)
+            => Is64Bit
+                ? (Pointer)(value.value.ToInt64() + unchecked((long)offset.ToUInt64()))
+                : (Pointer)(value.value.ToInt32() + unchecked((int)offset.ToUInt32()));
+
+        public static Pointer operator +(Pointer value, int offset)
+            => (Pointer)(value.value.ToInt64() + offset);
+
+        public static Pointer operator +(Pointer value, uint offset)
+            => Is64Bit
+                ? (Pointer)(value.value.ToInt64() + offset)
+                : (Pointer)(value.value.ToInt32() + unchecked((int)offset));
+
+        // Pointer arithmetics - Subtract
+
+        public static Pointer operator -(Pointer value, Pointer offset)
+            => value - offset.value;
+
+        public static Pointer operator -(Pointer value, IntPtr offset)
+            => Is64Bit
+                ? (Pointer)(value.value.ToInt64() - offset.ToInt64())
+                : (Pointer)(value.value.ToInt32() - offset.ToInt32());
+
+        public static Pointer operator -(Pointer value, UIntPtr offset)
+            => Is64Bit
+                ? (Pointer)(value.value.ToInt64() - unchecked((long)offset.ToUInt64()))
+                : (Pointer)(value.value.ToInt32() - unchecked((int)offset.ToUInt32()));
+
+        public static Pointer operator -(Pointer value, int offset)
+            => (Pointer)(value.value.ToInt64() - offset);
+
+        public static Pointer operator -(Pointer value, uint offset)
+            => Is64Bit
+                ? (Pointer)(value.value.ToInt64() - offset)
+                : (Pointer)(value.value.ToInt32() - unchecked((int)offset));
 
         // Align
 
-        public static Pointer operator |(Pointer value, UIntPtr v) => Is64Bit ? (IntPtr)unchecked((long)(unchecked((ulong)value.value.ToInt64()) | v.ToUInt64())) : (IntPtr)unchecked((int)(unchecked((uint)value.value.ToInt32()) | v.ToUInt32()));
-        public Pointer AlignDown(UIntPtr align) => (Pointer)unchecked((long)(unchecked((ulong)value.ToInt64()) & ~(align.ToUInt64() - 1)));
-        public bool SpanBoundary(uint Size, int BoundaryBits) => unchecked((ulong)value.ToInt64()) >> BoundaryBits < (unchecked((ulong)value.ToInt64()) + Size) >> BoundaryBits;
+        public static Pointer operator |(Pointer value, UIntPtr v)
+            => Is64Bit
+                ? (Pointer)unchecked((long)(unchecked((ulong)value.value.ToInt64()) | v.ToUInt64()))
+                : (Pointer)unchecked((int)(unchecked((uint)value.value.ToInt32()) | v.ToUInt32()));
+
+        public Pointer AlignDown(UIntPtr align)
+            => (Pointer)unchecked((long)(unchecked((ulong)value.ToInt64()) & ~(align.ToUInt64() - 1)));
+
+        public bool SpanBoundary(uint Size, int BoundaryBits)
+            => unchecked((ulong)value.ToInt64()) >> BoundaryBits < (unchecked((ulong)value.ToInt64()) + Size) >> BoundaryBits;
 
         public bool IsInvalidHandle() => value == IntPtr.Zero || value == (Is64Bit ? (IntPtr)(long)-1 : (IntPtr)(int)-1);
 
@@ -74,5 +117,16 @@ namespace StealthModule
         public override bool Equals(object obj) => obj is Pointer other && value == other.value;
 
         public override int GetHashCode() => (int)this;
+
+        // intptr to uint
+
+        private uint ToUInt32(this IntPtr value) => unchecked((uint)value.ToInt32());
+        private ulong ToUInt64(this IntPtr value) => unchecked((ulong)value.ToInt64());
+
+        // uintptr to int
+
+        private int ToInt32(this UIntPtr value) => unchecked((int)value.TouInt32());
+        private long ToInt64(this UIntPtr value) => unchecked((long)value.TouInt64());
+
     }
 }
