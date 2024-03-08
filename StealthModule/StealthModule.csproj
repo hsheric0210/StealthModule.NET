@@ -28,10 +28,13 @@
 
     <ItemGroup>
         <Compile Remove="bin.netcore\**" />
+        <Compile Remove="broken\**" />
         <Compile Remove="obj.netcore\**" />
         <EmbeddedResource Remove="bin.netcore\**" />
+        <EmbeddedResource Remove="broken\**" />
         <EmbeddedResource Remove="obj.netcore\**" />
         <None Remove="bin.netcore\**" />
+        <None Remove="broken\**" />
         <None Remove="obj.netcore\**" />
         <Page Remove="bin.netcore\**" />
         <Page Remove="obj.netcore\**" />

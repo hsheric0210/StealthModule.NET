@@ -54,5 +54,15 @@ namespace StealthModule
             Marshal.FreeHGlobal(ptr);
             return res;
         }
+
+        internal static string LongTo8byteString(ulong buf)
+        {
+            var size = sizeof(ulong);
+            var ptr = Marshal.AllocHGlobal(size);
+            Marshal.WriteInt64(ptr, unchecked((long)buf));
+            var res = Marshal.PtrToStringAnsi(ptr, 8);
+            Marshal.FreeHGlobal(ptr);
+            return res;
+        }
     }
 }
