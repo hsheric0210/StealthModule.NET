@@ -135,7 +135,7 @@ namespace StealthModule
         /// <returns>True if process is 64bit, false if it is 32bit</returns>
         public static bool Is64BitProcess { get { return IntPtr.Size == 8; } }
 
-        public void Close() { ((IDisposable)this).Dispose(); }
+        public void Close() => ((IDisposable)this).Dispose();
 
         void IDisposable.Dispose()
         {

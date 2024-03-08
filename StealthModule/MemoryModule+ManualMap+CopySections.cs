@@ -31,7 +31,6 @@ namespace StealthModule
                     }
 
                     // section is empty
-                    continue;
                 }
                 else
                 {
