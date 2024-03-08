@@ -4,7 +4,6 @@ namespace StealthModule
 {
     internal partial class NativeMethods
     {
-
         // Equivalent to the IMAGE_FIRST_SECTION macro
         internal static Pointer IMAGE_FIRST_SECTION(Pointer pNTHeader, ushort ntheader_FileHeader_SizeOfOptionalHeader) => pNTHeader + NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader;
 

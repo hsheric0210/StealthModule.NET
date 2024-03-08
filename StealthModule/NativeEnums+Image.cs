@@ -41,7 +41,6 @@
 
 namespace StealthModule
 {
-
     internal enum BasedRelocationType
     {
         IMAGE_REL_BASED_ABSOLUTE = 0,

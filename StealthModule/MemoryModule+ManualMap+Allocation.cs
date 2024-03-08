@@ -82,6 +82,7 @@ namespace StealthModule
                     if (mem == Pointer.Zero)
                         break;
                 }
+
                 foreach (var ptr in blockedMemory)
                     NativeMethods.VirtualFree(ptr, Pointer.Zero, AllocationType.RELEASE);
                 if (mem == Pointer.Zero)

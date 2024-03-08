@@ -45,7 +45,6 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-
         // Protection flags for memory pages (Executable, Readable, Writeable)
         static readonly MemoryProtection[,,] ProtectionFlags = new MemoryProtection[2, 2, 2]
         {
@@ -138,6 +137,7 @@ namespace StealthModule
                     // Only allowed to decommit whole pages
                     NativeMethods.VirtualFree(sectionData.Address, sectionData.Size, AllocationType.DECOMMIT);
                 }
+
                 return;
             }
 
@@ -164,6 +164,7 @@ namespace StealthModule
                 else if ((sectionHeader.Characteristics & NativeMagics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
                     size = ntHeaders.OptionalHeader.SizeOfUninitializedData;
             }
+
             return IntPtr.Size == 8 ? (IntPtr)unchecked((long)size) : (IntPtr)unchecked((int)size);
         }
     }

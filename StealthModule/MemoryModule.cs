@@ -78,7 +78,7 @@ namespace StealthModule
             NativeMethods.InitNatives();
             Disposed = false;
             if (data == null)
-                throw new ArgumentNullException(nameof(data));
+                throw new ArgumentNullException("Data", "data");
             ManualMap(data);
         }
 
@@ -94,7 +94,7 @@ namespace StealthModule
         public int CallEntryPoint()
         {
             if (Disposed)
-                throw new ObjectDisposedException(nameof(MemoryModule));
+                throw new ObjectDisposedException("MemoryModule");
 
             if (IsDll || exeEntry == null || !isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
@@ -104,19 +104,16 @@ namespace StealthModule
 
         /// <summary>
         /// <para>Overwrite the PE headers in the memory with random bytes to prevent getting memory dumped.</para>
-        /// 
         /// <para>
         /// Be careful! After this job done, you can no longer use the functions that access the PE header.
         /// For example, you can't resolve exports by calling 'GetExport' after erasing the PE header. (It will create errors)
         /// </para>
-        /// 
         /// Also, this may have other unintentional side effects such as:
         /// <list type="bullet">
         /// <item>Unable to use SEH(__try, __except, __finally) because the Exception data directory from the header is erased</item>
         /// <item>Unable to TLS(Thread-local Storage) because the TLS data directory from the header is erased</item>
         /// <item>Unable to access DLL resources because the Resources data directory from the header is erased</item>
         /// </list>
-        /// 
         /// See https://0xrick.github.io/win-internals/pe5/ for more header information
         /// </summary>
         /// <param name="random"></param>

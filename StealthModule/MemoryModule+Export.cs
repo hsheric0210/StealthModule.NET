@@ -46,7 +46,6 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-
         /// <summary>
         /// Returns a delegate for a function inside the DLL.
         /// </summary>
@@ -72,7 +71,7 @@ namespace StealthModule
         public Delegate GetExport(string funcName, Type delegateType)
         {
             if (delegateType == null)
-                throw new ArgumentNullException(nameof(delegateType));
+                throw new ArgumentNullException("Delegate type", "delegateType");
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
 
@@ -86,9 +85,9 @@ namespace StealthModule
         internal Pointer WalkEDT(string funcName)
         {
             if (Disposed)
-                throw new ObjectDisposedException(nameof(MemoryModule));
+                throw new ObjectDisposedException("MemoryModule");
             if (string.IsNullOrEmpty(funcName))
-                throw new ArgumentException(nameof(funcName));
+                throw new ArgumentException("Function Name", "funcName");
             if (!IsDll)
                 throw new InvalidOperationException("Loaded Module is not a DLL");
             if (!isInitialized)
