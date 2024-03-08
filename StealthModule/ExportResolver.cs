@@ -74,6 +74,8 @@ namespace StealthModule
             return ordinalMapping[functionOrdinal] = address;
         }
 
+        public delegate bool ExportCallback(ExportEntry entry);
+
         public struct ExportEntry
         {
             public string FunctionName;
@@ -112,7 +114,7 @@ namespace StealthModule
         /// <param name="moduleBase">The base address of the module in memory.</param>
         /// <param name="callback">Callback function for each Export entry. Return <c>true</c> from the callback to stop the iteration.</param>
         /// <exception cref="ModuleException"></exception>
-        public static void WalkEDT(Pointer moduleBase, Func<ExportEntry, bool> callback)
+        public static void WalkEDT(Pointer moduleBase, ExportCallback callback)
         {
             try
             {

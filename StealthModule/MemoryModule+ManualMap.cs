@@ -50,13 +50,13 @@ namespace StealthModule
         {
             if (data.Length < Marshal.SizeOf(typeof(IMAGE_DOS_HEADER)))
                 throw new BadImageFormatException("DOS header too small");
-            var dosHeader = data.ReadStruct<IMAGE_DOS_HEADER>(0);
+            var dosHeader = Structs.ReadOffset<IMAGE_DOS_HEADER>(data, 0);
             if (dosHeader.e_magic != Magic.IMAGE_DOS_SIGNATURE)
                 throw new BadImageFormatException("Invalid DOS header magic");
 
             if (data.Length < dosHeader.e_lfanew + Marshal.SizeOf(typeof(IMAGE_NT_HEADERS)))
                 throw new BadImageFormatException("NT header too small");
-            var originalNtHeaders = data.ReadStruct<IMAGE_NT_HEADERS>(dosHeader.e_lfanew);
+            var originalNtHeaders = Structs.ReadOffset<IMAGE_NT_HEADERS>(data, dosHeader.e_lfanew);
 
             if (originalNtHeaders.Signature != Magic.IMAGE_NT_SIGNATURE)
                 throw new BadImageFormatException("Invalid NT header signature");
@@ -72,7 +72,7 @@ namespace StealthModule
             var ofSection = NativeMethods.IMAGE_FIRST_SECTION(dosHeader.e_lfanew, originalNtHeaders.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i != originalNtHeaders.FileHeader.NumberOfSections; i++, ofSection += Sz.IMAGE_SECTION_HEADER)
             {
-                var section = data.ReadStruct<IMAGE_SECTION_HEADER>(ofSection);
+                var section = Structs.ReadOffset<IMAGE_SECTION_HEADER>(data, ofSection);
                 var endOfSection = section.VirtualAddress + (section.SizeOfRawData > 0 ? section.SizeOfRawData : originalNtHeaders.OptionalHeader.SectionAlignment);
                 if (endOfSection > lastSectionEnd)
                     lastSectionEnd = endOfSection;

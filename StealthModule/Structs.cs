@@ -43,9 +43,9 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public static class BytesExtension
+    public static class Structs
     {
-        internal static T ReadStruct<T>(this byte[] buf, int offset)
+        internal static T ReadOffset<T>(byte[] buf, int offset)
         {
             var size = Marshal.SizeOf(typeof(T));
             var ptr = Marshal.AllocHGlobal(size);
