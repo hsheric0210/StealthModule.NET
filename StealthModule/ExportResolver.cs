@@ -18,7 +18,7 @@ namespace StealthModule
 
         public Pointer this[string functionName] => GetExport(functionName);
 
-        public Pointer this[short functionOrdinal] => GetExport(functionOrdinal);
+        public Pointer this[int functionOrdinal] => GetExport(functionOrdinal);
 
         public ExportResolver(Pointer moduleBase) => this.moduleBase = moduleBase;
 
@@ -54,7 +54,7 @@ namespace StealthModule
             return nameMapping[functionName] = address;
         }
 
-        public Pointer GetExport(short functionOrdinal)
+        public Pointer GetExport(int functionOrdinal)
         {
             if (ordinalMapping.TryGetValue(functionOrdinal, out var pointer))
                 return pointer;
@@ -79,15 +79,21 @@ namespace StealthModule
         public Delegate GetExport(string functionName, Type delegateType)
             => Marshal.GetDelegateForFunctionPointer(GetExport(functionName), delegateType);
 
-        public Delegate GetExport(short functionOrdinal, Type delegateType)
+        public Delegate GetExport(int functionOrdinal, Type delegateType)
             => Marshal.GetDelegateForFunctionPointer(GetExport(functionOrdinal), delegateType);
 
+        public TDelegate GetExport<TDelegate>(string functionName) where TDelegate : class
 #if NET451_OR_GREATER
-        public TDelegate GetExport<TDelegate>(string functionName)
             => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExport(functionName));
+#else
+            => Marshal.GetDelegateForFunctionPointer(GetExport(functionName), typeof(TDelegate)) as TDelegate;
+#endif
 
-        public TDelegate GetExport<TDelegate>(short functionOrdinal)
+        public TDelegate GetExport<TDelegate>(int functionOrdinal) where TDelegate : class
+#if NET451_OR_GREATER
             => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExport(functionOrdinal));
+#else
+            => Marshal.GetDelegateForFunctionPointer(GetExport(functionOrdinal), typeof(TDelegate)) as TDelegate;
 #endif
 
         // Export table walk
@@ -143,6 +149,10 @@ namespace StealthModule
         {
             try
             {
+                var dosMagic = moduleBase.Read<ushort>();
+                if (dosMagic != 0x5A4D) // prevent calling WalkEDT() after erasing the PE header
+                    throw new BadImageFormatException("Not a valid PE DOS header magic; Possibly your PE header is erased: " + dosMagic.ToString("X4"));
+
                 // Traverse the PE header in memory
                 var ntHeaders = Marshal.ReadInt32(moduleBase + 0x3C);
                 var optionalHeader = moduleBase + ntHeaders + 0x18;

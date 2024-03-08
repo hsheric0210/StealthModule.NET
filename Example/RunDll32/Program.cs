@@ -24,6 +24,12 @@ namespace RunDll32
 
             var dllName = pieces[0];
             var entryPoint = pieces[1];
+            if (dllName.Length <= 0 || entryPoint.Length <= 0)
+            {
+                PrintSyntax();
+                return;
+            }
+
             RunDLL(dllName, entryPoint);
         }
 
@@ -33,33 +39,33 @@ namespace RunDll32
         {
             if (!File.Exists(dllName))
             {
-                Console.WriteLine("  [-] DLL file doesn't exist: " + dllName);
+                Console.WriteLine("[-] DLL file doesn't exist: " + dllName);
                 return;
             }
 
             var dllBytes = File.ReadAllBytes(dllName);
-            Console.WriteLine("  [+] Read " + dllBytes.Length + " bytes from the disk. Begin manual mapping...");
+            Console.WriteLine("[+] Read " + dllBytes.Length + " bytes from the disk. Begin manual mapping...");
 
             var module = new MemoryModule(dllBytes);
 
-            var entryPoint = (Pointer)module.GetExportAddress(entryPointName);
+            var entryPoint = entryPointName[0] == '#' ? module.Exports[int.Parse(entryPointName.Substring(1))] : module.Exports[entryPointName];
             if (entryPoint == Pointer.Zero)
             {
-                Console.WriteLine("  [-] The entry point function " + entryPointName + " not found.");
+                Console.WriteLine("[-] The entry point function " + entryPointName + " not found.");
                 return;
             }
 
-            Console.WriteLine("  [+] The entry point function " + entryPointName + " is at: " + entryPoint);
+            Console.WriteLine("[+] The entry point function " + entryPointName + " is at: " + entryPoint);
 
             try
             {
                 var entry = Marshal.GetDelegateForFunctionPointer<DllEntryPoint>(entryPoint);
                 entry();
-                Console.WriteLine("  [+] The entry point call was successful.");
+                Console.WriteLine("[+] The entry point call was successful.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine("  [+] The entry point call failed with an exception: " + ex);
+                Console.WriteLine("[+] The entry point call failed with an exception: " + ex);
             }
         }
 
@@ -70,7 +76,10 @@ namespace RunDll32
             Console.WriteLine("Warning: Optional parameters are unsupported.");
             Console.WriteLine("Syntax: RunDll32.exe dll_name,EntryPoint");
             Console.WriteLine("\tdll_name - The DLL file to run");
-            Console.WriteLine("\tEntryPoint - The entry point function name");
+            Console.WriteLine("\tEntryPoint - The entry point function name or ordinal (to use ordinal the '#' prefix must be appended)");
+            Console.WriteLine("");
+            Console.WriteLine("'Rundll32.exe abcd.dll,foobarbaz123' - Call the abcd.dll's 'foobarbaz123' exported function");
+            Console.WriteLine("'Rundll32.exe efgh.dll,#1' - Call the efgh.dll's export function with ordinal 1");
         }
     }
 }

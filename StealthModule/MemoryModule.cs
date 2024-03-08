@@ -6,7 +6,10 @@ namespace StealthModule
     public partial class MemoryModule : IDisposable
     {
         public bool Disposed { get; private set; }
+
         public bool IsDll { get; private set; }
+
+        public ExportResolver Exports { get; }
 
         private Pointer moduleBaseAddress = Pointer.Zero;
         private Pointer ntHeadersAddress = Pointer.Zero;
@@ -32,6 +35,7 @@ namespace StealthModule
             if (data == null)
                 throw new ArgumentNullException("data");
             ManualMap(data);
+            Exports = new ExportResolver(moduleBaseAddress);
         }
 
         ~MemoryModule()
