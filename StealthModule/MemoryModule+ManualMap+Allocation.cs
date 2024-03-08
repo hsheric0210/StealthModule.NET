@@ -8,12 +8,12 @@ namespace StealthModule
         {
 
             // reserve memory for image of library
-            var memory = NativeMethods.VirtualAlloc(desiredImageBase, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+            var memory = NativeMethods.VirtualAlloc(desiredImageBase, (Pointer)ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
             //pCode = IntPtr.Zero; //test relocation with this
 
             // try to allocate memory at arbitrary position
             if (memory == Pointer.Zero)
-                memory = NativeMethods.VirtualAlloc(Pointer.Zero, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+                memory = NativeMethods.VirtualAlloc(Pointer.Zero, (Pointer)ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
 
             if (memory == Pointer.Zero)
                 throw new ModuleException("Out of Memory");
@@ -25,7 +25,7 @@ namespace StealthModule
                 while (memory.SpanBoundary(alignedImageSize, 32))
                 {
                     blockedMemory.Add(memory);
-                    memory = NativeMethods.VirtualAlloc(Pointer.Zero, alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    memory = NativeMethods.VirtualAlloc(Pointer.Zero, (Pointer)alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
                     if (memory == Pointer.Zero)
                         break;
                 }
@@ -40,7 +40,7 @@ namespace StealthModule
 
         private static Pointer AllocateAndCopyNtHeaders(Pointer moduleBaseAddress, byte[] data, ImageDosHeader dosHeader, ImageNtHeaders ntHeadersData)
         {
-            var headers = NativeMethods.VirtualAlloc(moduleBaseAddress, ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
+            var headers = NativeMethods.VirtualAlloc(moduleBaseAddress, (Pointer)ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
             if (headers == Pointer.Zero)
                 throw new ModuleException("Out of Memory");
 

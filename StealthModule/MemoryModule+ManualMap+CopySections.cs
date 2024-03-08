@@ -16,7 +16,7 @@ namespace StealthModule
                     var size = ntHeadersData.OptionalHeader.SectionAlignment;
                     if (size > 0)
                     {
-                        var dest = NativeMethods.VirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, size, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                        var dest = NativeMethods.VirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, (Pointer)size, AllocationType.COMMIT, MemoryProtection.READWRITE);
                         if (dest == Pointer.Zero)
                             throw new ModuleException("Unable to allocate memory");
 
@@ -35,7 +35,7 @@ namespace StealthModule
                 else
                 {
                     // commit memory block and copy data from dll
-                    var dest = NativeMethods.VirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, sectionHeader.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    var dest = NativeMethods.VirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, (Pointer)sectionHeader.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
                     if (dest == Pointer.Zero)
                         throw new ModuleException("Out of memory");
 
