@@ -78,7 +78,7 @@ namespace StealthModule
             NativeMethods.InitNatives();
             Disposed = false;
             if (data == null)
-                throw new ArgumentNullException("Data", "data");
+                throw new ArgumentNullException("data", "The pe data");
             ManualMap(data);
         }
 

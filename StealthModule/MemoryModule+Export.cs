@@ -71,7 +71,7 @@ namespace StealthModule
         public Delegate GetExport(string funcName, Type delegateType)
         {
             if (delegateType == null)
-                throw new ArgumentNullException("Delegate type", "delegateType");
+                throw new ArgumentNullException("delegateType", "Delegate type");
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
 

@@ -76,7 +76,7 @@ namespace StealthModule
 
         public delegate bool ExportCallback(ExportEntry entry);
 
-        public struct ExportEntry
+        public readonly struct ExportEntry
         {
             public string FunctionName { get; }
             public int FunctionOrdinal { get; }
@@ -130,11 +130,7 @@ namespace StealthModule
                 var optionalHeader = moduleBase + ntHeaders + 0x18;
                 var optionalHeaderMagic = Marshal.ReadInt16(optionalHeader);
 
-                Pointer edtAddress;
-                if (optionalHeaderMagic == 0x010b) // NT64
-                    edtAddress = optionalHeader + 0x60;
-                else
-                    edtAddress = optionalHeader + 0x70;
+                Pointer edtAddress = optionalHeader + optionalHeaderMagic == 0x010b ? 0x60 : 0x70; // 0x010B = NT64
 
                 // Read -> IMAGE_EXPORT_DIRECTORY
                 var edtRVA = Marshal.ReadInt32(edtAddress);
