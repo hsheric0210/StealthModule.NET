@@ -590,26 +590,18 @@ namespace StealthModule
             internal bool Last;
         }
 
-        static T PtrRead<T>(IntPtr ptr) { return (T)Marshal.PtrToStructure(ptr, typeof(T)); }
-        static void PtrWrite<T>(IntPtr ptr, T val) { Marshal.StructureToPtr(val, ptr, false); }
-        static IntPtr PtrAdd(IntPtr p, int v) { return (IntPtr)(p.ToInt64() + v); }
-        static IntPtr PtrAdd(IntPtr p, uint v) { return (IntPtr.Size == 8 ? (IntPtr)(p.ToInt64() + unchecked((long)v)) : (IntPtr)(p.ToInt32() + unchecked((int)v))); }
-        static IntPtr PtrAdd(IntPtr p, IntPtr v) { return (IntPtr.Size == 8 ? (IntPtr)(p.ToInt64() + v.ToInt64()) : (IntPtr)(p.ToInt32() + v.ToInt32())); }
-        static IntPtr PtrAdd(IntPtr p, UIntPtr v) { return (IntPtr.Size == 8 ? (IntPtr)(p.ToInt64() + unchecked((long)v.ToUInt64())) : (IntPtr)(p.ToInt32() + unchecked((int)v.ToUInt32()))); }
-        static IntPtr PtrSub(IntPtr p, IntPtr v) { return (IntPtr.Size == 8 ? (IntPtr)(p.ToInt64() - v.ToInt64()) : (IntPtr)(p.ToInt32() - v.ToInt32())); }
-        static IntPtr PtrBitOr(IntPtr p, UIntPtr v) { return (IntPtr.Size == 8 ? (IntPtr)unchecked((long)(unchecked((ulong)p.ToInt64()) | v.ToUInt64())) : (IntPtr)unchecked((int)(unchecked((uint)p.ToInt32()) | v.ToUInt32()))); }
-        static IntPtr PtrAlignDown(IntPtr p, UIntPtr align) { return (IntPtr)unchecked((long)(unchecked((ulong)p.ToInt64()) & ~(align.ToUInt64() - 1))); }
-        static bool PtrIsInvalidHandle(IntPtr h) { return (h == IntPtr.Zero || h == (IntPtr.Size == 8 ? (IntPtr)(long)-1 : (IntPtr)(int)-1)); }
-        static bool PtrSpanBoundary(IntPtr p, uint Size, int BoundaryBits) { return ((unchecked((ulong)p.ToInt64()) >> BoundaryBits) < ((unchecked((ulong)(p.ToInt64())) + Size) >> BoundaryBits)); }
+        static T PtrRead<T>(IntPtr ptr) { return ((Pointer)ptr).Read<T>(); }
+        static void PtrWrite<T>(IntPtr ptr, T val) { ((Pointer)ptr).Write<T>(val); }
+        static IntPtr PtrAdd(IntPtr p, int v) { return ((Pointer)p) + v; }
+        static IntPtr PtrAdd(IntPtr p, uint v) { return ((Pointer)p) + v; }
+        static IntPtr PtrAdd(IntPtr p, IntPtr v) { return ((Pointer)p) + v; }
+        static IntPtr PtrAdd(IntPtr p, UIntPtr v) { return ((Pointer)p) + v; }
+        static IntPtr PtrSub(IntPtr p, IntPtr v) { return ((Pointer)p) - v; }
+        static IntPtr PtrBitOr(IntPtr p, UIntPtr v) { return ((Pointer)p) | v; }
+        static IntPtr PtrAlignDown(IntPtr p, UIntPtr align) { return ((Pointer)p).AlignDown(align); }
+        static bool PtrIsInvalidHandle(IntPtr h) { return ((Pointer)h).IsInvalidHandle(); }
+        static bool PtrSpanBoundary(IntPtr p, uint Size, int BoundaryBits) { return ((Pointer)p).SpanBoundary(Size, BoundaryBits); }
 
-        static T BytesReadStructAt<T>(byte[] buf, int offset)
-        {
-            int size = Marshal.SizeOf(typeof(T));
-            IntPtr ptr = Marshal.AllocHGlobal(size);
-            Marshal.Copy(buf, offset, ptr, size);
-            T res = (T)Marshal.PtrToStructure(ptr, typeof(T));
-            Marshal.FreeHGlobal(ptr);
-            return res;
-        }
+        static T BytesReadStructAt<T>(byte[] buf, int offset) => Structs.ReadOffset<T>(buf, offset);
     }
 }

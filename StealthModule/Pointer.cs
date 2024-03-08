@@ -23,9 +23,9 @@ namespace StealthModule
         public static implicit operator Pointer(IntPtr value) => new Pointer(value);
         public static implicit operator Pointer(UIntPtr value) => new Pointer((IntPtr)unchecked((long)value.ToUInt64()));
         public static implicit operator Pointer(long value) => new Pointer((IntPtr)value);
-        public static implicit operator Pointer(ulong value) => new Pointer((IntPtr)unchecked((long)value));
+        //public static implicit operator Pointer(ulong value) => new Pointer((IntPtr)unchecked((long)value));
         public static implicit operator Pointer(int value) => new Pointer((IntPtr)value);
-        public static implicit operator Pointer(uint value) => new Pointer((IntPtr)value); // auto cast: uint -> long
+        //public static implicit operator Pointer(uint value) => new Pointer((IntPtr)value); // auto cast: uint -> long
 
         // (Auto-)Unboxing functions (Pointer -> object)
 
@@ -46,7 +46,6 @@ namespace StealthModule
 
         // Pointer arithmetics
 
-        public static Pointer operator +(Pointer value, Pointer offset) => Is64Bit ? (Pointer)((ulong)value + (ulong)offset) : (Pointer)((uint)value + (uint)offset);
         public static Pointer operator +(Pointer value, IntPtr offset) => (IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + offset.ToInt64()) : (IntPtr)(value.value.ToInt32() + offset.ToInt32()));
         public static Pointer operator +(Pointer value, UIntPtr offset) => (IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset.ToUInt64())) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset.ToUInt32())));
         public static Pointer operator +(Pointer value, int offset) => (value.value.ToInt64() + offset);
