@@ -49,12 +49,12 @@ namespace StealthModule
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate void ImageTlsDelegate(IntPtr dllHandle, DllReason reason, IntPtr reserved);
 
-        private static void ExecuteTLS(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders)
+        private static void ExecuteTLS(Pointer moduleBase, ref ImageNtHeaders ntHeaders)
         {
             if (ntHeaders.OptionalHeader.TLSTable.VirtualAddress == 0) // no tls directory
                 return;
 
-            var tlsDir = (moduleBase + ntHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<IMAGE_TLS_DIRECTORY>();
+            var tlsDir = (moduleBase + ntHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<ImageTlsDirectory>();
             Pointer tlsCallbackAddress = tlsDir.AddressOfCallBacks;
             if (tlsCallbackAddress != Pointer.Zero)
             {

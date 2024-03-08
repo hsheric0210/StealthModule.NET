@@ -45,14 +45,14 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        private static bool PerformBaseRelocation(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders, Pointer delta)
+        private static bool PerformBaseRelocation(Pointer moduleBase, ref ImageNtHeaders ntHeaders, Pointer delta)
         {
             if (ntHeaders.OptionalHeader.BaseRelocationTable.Size == 0)
                 return delta == Pointer.Zero;
 
             for (var relocationTableAddress = moduleBase + ntHeaders.OptionalHeader.BaseRelocationTable.VirtualAddress; ;)
             {
-                var relocationTable = relocationTableAddress.Read<IMAGE_BASE_RELOCATION>();
+                var relocationTable = relocationTableAddress.Read<ImageBaseRelocation>();
                 if (relocationTable.VirtualAdress == 0)
                     break;
 

@@ -46,14 +46,14 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        private static Pointer[] BuildIDT(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders)
+        private static Pointer[] BuildIDT(Pointer moduleBase, ref ImageNtHeaders ntHeaders)
         {
             var importModules = new System.Collections.Generic.List<Pointer>();
             var entryCount = ntHeaders.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
             var importDescriptorTableAddress = moduleBase + ntHeaders.OptionalHeader.ImportTable.VirtualAddress;
             for (uint i = 0; i != entryCount; i++, importDescriptorTableAddress += NativeSizes.IMAGE_IMPORT_DESCRIPTOR)
             {
-                var importDescriptor = importDescriptorTableAddress.Read<IMAGE_IMPORT_DESCRIPTOR>();
+                var importDescriptor = importDescriptorTableAddress.Read<ImageImportDescriptor>();
                 if (importDescriptor.Name == 0)
                     break;
 

@@ -98,12 +98,12 @@ namespace StealthModule
                 throw new ModuleException("Not a valid PE DOS header magic; Possibly your PE header is erased");
 
             var pDirectory = ntHeaders + NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable);
-            var Directory = pDirectory.Read<IMAGE_DATA_DIRECTORY>();
+            var Directory = pDirectory.Read<ImageDataDirectory>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");
 
             var pExports = moduleBase + Directory.VirtualAddress;
-            var Exports = pExports.Read<IMAGE_EXPORT_DIRECTORY>();
+            var Exports = pExports.Read<ImageExportDirectory>();
             if (Exports.NumberOfFunctions == 0 || Exports.NumberOfNames == 0)
                 throw new ModuleException("Dll exports no functions");
 

@@ -44,9 +44,11 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-
+    /// <summary>
+    /// IMAGE_DOS_HEADER
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_DOS_HEADER
+    internal struct ImageDosHeader
     {
         public ushort e_magic;    // Magic number
         public ushort e_cblp;     // Bytes on last page of file
@@ -69,16 +71,22 @@ namespace StealthModule
         public int e_lfanew;      // File address of new exe header
     }
 
+    /// <summary>
+    /// IMAGE_NT_HEADERS
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_NT_HEADERS
+    internal struct ImageNtHeaders
     {
         public uint Signature;
-        public IMAGE_FILE_HEADER FileHeader;
-        public IMAGE_OPTIONAL_HEADER OptionalHeader;
+        public ImageFileHeader FileHeader;
+        public ImageOptionalHeader OptionalHeader;
     }
 
+    /// <summary>
+    /// IMAGE_FILE_HEADER
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_FILE_HEADER
+    internal struct ImageFileHeader
     {
         public ushort Machine;
         public ushort NumberOfSections;
@@ -89,8 +97,11 @@ namespace StealthModule
         public ushort Characteristics;
     }
 
+    /// <summary>
+    /// IMAGE_OPTIONAL_HEADER
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_OPTIONAL_HEADER
+    internal struct ImageOptionalHeader
     {
         public MagicType Magic;
         public byte MajorLinkerVersion;
@@ -121,33 +132,39 @@ namespace StealthModule
         public IntPtr SizeOfHeapCommit;
         public uint LoaderFlags;
         public uint NumberOfRvaAndSizes;
-        public IMAGE_DATA_DIRECTORY ExportTable;
-        public IMAGE_DATA_DIRECTORY ImportTable;
-        public IMAGE_DATA_DIRECTORY ResourceTable;
-        public IMAGE_DATA_DIRECTORY ExceptionTable;
-        public IMAGE_DATA_DIRECTORY CertificateTable;
-        public IMAGE_DATA_DIRECTORY BaseRelocationTable;
-        public IMAGE_DATA_DIRECTORY Debug;
-        public IMAGE_DATA_DIRECTORY Architecture;
-        public IMAGE_DATA_DIRECTORY GlobalPtr;
-        public IMAGE_DATA_DIRECTORY TLSTable;
-        public IMAGE_DATA_DIRECTORY LoadConfigTable;
-        public IMAGE_DATA_DIRECTORY BoundImport;
-        public IMAGE_DATA_DIRECTORY IAT;
-        public IMAGE_DATA_DIRECTORY DelayImportDescriptor;
-        public IMAGE_DATA_DIRECTORY CLRRuntimeHeader;
-        public IMAGE_DATA_DIRECTORY Reserved;
+        public ImageDataDirectory ExportTable;
+        public ImageDataDirectory ImportTable;
+        public ImageDataDirectory ResourceTable;
+        public ImageDataDirectory ExceptionTable;
+        public ImageDataDirectory CertificateTable;
+        public ImageDataDirectory BaseRelocationTable;
+        public ImageDataDirectory Debug;
+        public ImageDataDirectory Architecture;
+        public ImageDataDirectory GlobalPtr;
+        public ImageDataDirectory TLSTable;
+        public ImageDataDirectory LoadConfigTable;
+        public ImageDataDirectory BoundImport;
+        public ImageDataDirectory IAT;
+        public ImageDataDirectory DelayImportDescriptor;
+        public ImageDataDirectory CLRRuntimeHeader;
+        public ImageDataDirectory Reserved;
     }
 
+    /// <summary>
+    /// IMAGE_DATA_DIRECTORY
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_DATA_DIRECTORY
+    internal struct ImageDataDirectory
     {
         public uint VirtualAddress;
         public uint Size;
     }
 
+    /// <summary>
+    /// IMAGE_SECTION_HEADER
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_SECTION_HEADER
+    internal struct ImageSectionHeader
     {
         public ulong Name; //8 byte string
         public uint PhysicalAddress;
@@ -161,15 +178,21 @@ namespace StealthModule
         public uint Characteristics;
     }
 
+    /// <summary>
+    /// IMAGE_BASE_RELOCATION
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_BASE_RELOCATION
+    internal struct ImageBaseRelocation
     {
         public uint VirtualAdress;
         public uint SizeOfBlock;
     }
 
+    /// <summary>
+    /// IMAGE_IMPORT_DESCRIPTOR
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_IMPORT_DESCRIPTOR
+    internal struct ImageImportDescriptor
     {
         public uint OriginalFirstThunk;
         public uint TimeDateStamp;
@@ -178,8 +201,11 @@ namespace StealthModule
         public uint FirstThunk;
     }
 
+    /// <summary>
+    /// IMAGE_EXPORT_DIRECTORY
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_EXPORT_DIRECTORY
+    internal struct ImageExportDirectory
     {
         public uint Characteristics;
         public uint TimeDateStamp;
@@ -194,8 +220,11 @@ namespace StealthModule
         public uint AddressOfNameOrdinals;  // RVA from base of image
     }
 
+    /// <summary>
+    /// IMAGE_TLS_DIRECTORY
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct IMAGE_TLS_DIRECTORY
+    internal struct ImageTlsDirectory
     {
         public IntPtr StartAddressOfRawData;
         public IntPtr EndAddressOfRawData;

@@ -45,12 +45,12 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        private static void CopySections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, byte[] data)
+        private static void CopySections(Pointer moduleBase, ref ImageNtHeaders ntHeadersData, Pointer ntHeadersAddress, byte[] data)
         {
             var sectionBase = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionBase += NativeSizes.IMAGE_SECTION_HEADER)
             {
-                var sectionHeader = sectionBase.Read<IMAGE_SECTION_HEADER>();
+                var sectionHeader = sectionBase.Read<ImageSectionHeader>();
                 if (sectionHeader.SizeOfRawData == 0)
                 {
                     // section doesn't contain data in the dll itself, but may define uninitialized data

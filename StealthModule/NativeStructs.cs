@@ -44,8 +44,11 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
+    /// <summary>
+    /// SYSTEM_INFO
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct SYSTEM_INFO
+    internal struct SystemInfo
     {
         public ushort wProcessorArchitecture;
         public ushort wReserved;

@@ -46,7 +46,7 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        private static Pointer AllocateAndCopyHeaders(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, byte[] data)
+        private static Pointer AllocateAndCopyHeaders(Pointer moduleBase, ref ImageNtHeaders ntHeadersData, byte[] data)
         {
             // commit memory for headers
             var headers = NativeMethods.VirtualAlloc(moduleBase, ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
@@ -58,7 +58,7 @@ namespace StealthModule
             return headers;
         }
 
-        private static Pointer AllocateModuleMemory(ref IMAGE_NT_HEADERS ntHeadersData, uint alignedImageSize, Pointer preferredBaseAddress)
+        private static Pointer AllocateModuleMemory(ref ImageNtHeaders ntHeadersData, uint alignedImageSize, Pointer preferredBaseAddress)
         {
             // reserve memory for image of library
             var mem = NativeMethods.VirtualAlloc(preferredBaseAddress, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
