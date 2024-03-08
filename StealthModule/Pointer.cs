@@ -46,6 +46,7 @@ namespace StealthModule
 
         // Pointer arithmetics
 
+        public static Pointer operator +(Pointer value, Pointer offset) => value + offset.value;
         public static Pointer operator +(Pointer value, IntPtr offset) => (IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + offset.ToInt64()) : (IntPtr)(value.value.ToInt32() + offset.ToInt32()));
         public static Pointer operator +(Pointer value, UIntPtr offset) => (IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset.ToUInt64())) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset.ToUInt32())));
         public static Pointer operator +(Pointer value, int offset) => (value.value.ToInt64() + offset);
