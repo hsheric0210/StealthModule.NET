@@ -36,9 +36,7 @@ Some enhancements are applied:
 
 1. Add this project to your repository using command: `git submodule add https://github.com/hsheric0210/StealthModule.NET`
 
-2. Add the project file `StealthModule.csproj` to your project.
-
-3. Add the reference to StealthModule to your own project. (Project > Add Reference > Projects; `Alt+P R` > Projects)
+2. Add the reference to desired StealthModule project file (e.g. `StealthModule.csproj`) to your own project. (Project > Add Reference > Projects; `Alt+P R` > Projects)
 
 ### Solution 2 - Manual DLL reference
 
@@ -48,7 +46,7 @@ Some enhancements are applied:
 
 ## Contributions
 
-DllFromMemory.Safer.NET is based on DllFromMemory.Net commit 7b1773c8035429e6fb1ab4b8fd0a52d2a4810efc.
+StealthModule.NET is based on DllFromMemory.Net commit 7b1773c8035429e6fb1ab4b8fd0a52d2a4810efc.
 https://github.com/schellingb/DLLFromMemory-net
 
 DLLFromMemory.Net is based on Memory Module.net 0.2
