@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Runtime.ExceptionServices;
 
 namespace RunDll32
 {
@@ -35,6 +36,7 @@ namespace RunDll32
 
         private delegate void DllEntryPoint();
 
+        [HandleProcessCorruptedStateExceptions] // Catch AccessViolationException
         private static void RunDLL(string dllName, string entryPointName)
         {
             if (!File.Exists(dllName))
