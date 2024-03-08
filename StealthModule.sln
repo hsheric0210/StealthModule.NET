@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StealthModule.Kernel", "Ste
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StealthModule.Kernel.NETCore", "StealthModule.Kernel\StealthModule.Kernel.NETCore.csproj", "{3905E958-785B-47EE-906A-E6FE64ADFB39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RunDll32", "Example\RunDll32\RunDll32.csproj", "{18F55CB2-6AAA-4F4D-BE66-CCDB369AED6F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{3905E958-785B-47EE-906A-E6FE64ADFB39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3905E958-785B-47EE-906A-E6FE64ADFB39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3905E958-785B-47EE-906A-E6FE64ADFB39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18F55CB2-6AAA-4F4D-BE66-CCDB369AED6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18F55CB2-6AAA-4F4D-BE66-CCDB369AED6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18F55CB2-6AAA-4F4D-BE66-CCDB369AED6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18F55CB2-6AAA-4F4D-BE66-CCDB369AED6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
