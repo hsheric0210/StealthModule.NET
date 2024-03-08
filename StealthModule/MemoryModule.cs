@@ -46,7 +46,7 @@ namespace StealthModule
         public int CallEntryPoint()
         {
             if (Disposed)
-                throw new ObjectDisposedException("DLLFromMemory");
+                throw new ObjectDisposedException("MemoryModule");
             if (IsDll || exeEntryPoint == null || !isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
 

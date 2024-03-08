@@ -23,8 +23,6 @@ namespace StealthModule
                 throw new BadImageFormatException("Machine type doesn't fit (i386 vs. AMD64)");
             if ((ntHeadersData.OptionalHeader.SectionAlignment & 1) > 0)
                 throw new BadImageFormatException("Wrong section alignment"); //Only support multiple of 2
-            if (ntHeadersData.OptionalHeader.AddressOfEntryPoint == 0)
-                throw new ModuleException("Module has no entry point"); // todo: allow manual-map entrypoint-less modules
 
             NativeMethods.GetNativeSystemInfo(out var systemInfo);
             uint lastSectionEnd = 0;
