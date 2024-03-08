@@ -133,7 +133,7 @@ namespace StealthModule
             }
         }
 
-        static uint GetMachineType() => IntPtr.Size == 8 ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;
+        static uint GetMachineType() => Is64BitProcess ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;
 
         static uint AlignValueUp(uint value, uint alignment) => (value + alignment - 1) & ~(alignment - 1);
     }

@@ -47,20 +47,20 @@ namespace StealthModule
         // Pointer arithmetics
 
         public static Pointer operator +(Pointer value, Pointer offset) => value + offset.value;
-        public static Pointer operator +(Pointer value, IntPtr offset) => IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + offset.ToInt64()) : (IntPtr)(value.value.ToInt32() + offset.ToInt32());
-        public static Pointer operator +(Pointer value, UIntPtr offset) => IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset.ToUInt64())) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset.ToUInt32()));
+        public static Pointer operator +(Pointer value, IntPtr offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() + offset.ToInt64()) : (IntPtr)(value.value.ToInt32() + offset.ToInt32());
+        public static Pointer operator +(Pointer value, UIntPtr offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset.ToUInt64())) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset.ToUInt32()));
         public static Pointer operator +(Pointer value, int offset) => value.value.ToInt64() + offset;
-        public static Pointer operator +(Pointer value, uint offset) => IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset)) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset));
+        public static Pointer operator +(Pointer value, uint offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() + unchecked((long)offset)) : (IntPtr)(value.value.ToInt32() + unchecked((int)offset));
 
-        public static Pointer operator -(Pointer value, IntPtr offset) => IntPtr.Size == 8 ? (IntPtr)(value.value.ToInt64() - offset.ToInt64()) : (IntPtr)(value.value.ToInt32() - offset.ToInt32());
+        public static Pointer operator -(Pointer value, IntPtr offset) => Is64Bit ? (IntPtr)(value.value.ToInt64() - offset.ToInt64()) : (IntPtr)(value.value.ToInt32() - offset.ToInt32());
 
         // Align
 
-        public static Pointer operator |(Pointer value, UIntPtr v) => IntPtr.Size == 8 ? (IntPtr)unchecked((long)(unchecked((ulong)value.value.ToInt64()) | v.ToUInt64())) : (IntPtr)unchecked((int)(unchecked((uint)value.value.ToInt32()) | v.ToUInt32()));
+        public static Pointer operator |(Pointer value, UIntPtr v) => Is64Bit ? (IntPtr)unchecked((long)(unchecked((ulong)value.value.ToInt64()) | v.ToUInt64())) : (IntPtr)unchecked((int)(unchecked((uint)value.value.ToInt32()) | v.ToUInt32()));
         public Pointer AlignDown(UIntPtr align) => (Pointer)unchecked((long)(unchecked((ulong)value.ToInt64()) & ~(align.ToUInt64() - 1)));
         public bool SpanBoundary(uint Size, int BoundaryBits) => unchecked((ulong)value.ToInt64()) >> BoundaryBits < (unchecked((ulong)value.ToInt64()) + Size) >> BoundaryBits;
 
-        public bool IsInvalidHandle() => value == IntPtr.Zero || value == (IntPtr.Size == 8 ? (IntPtr)(long)-1 : (IntPtr)(int)-1);
+        public bool IsInvalidHandle() => value == IntPtr.Zero || value == (Is64Bit ? (IntPtr)(long)-1 : (IntPtr)(int)-1);
 
         // Comparison operator
 
