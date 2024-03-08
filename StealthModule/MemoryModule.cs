@@ -8,13 +8,13 @@ namespace StealthModule
         public bool Disposed { get; private set; }
         public bool IsDll { get; private set; }
 
-        Pointer pCode = Pointer.Zero;
-        Pointer pNTHeaders = Pointer.Zero;
-        Pointer[] ImportModules;
-        bool _initialized = false;
-        DllEntryDelegate _dllEntry = null;
-        ExeEntryDelegate _exeEntry = null;
-        bool _isRelocated = false;
+        Pointer moduleBaseAddress = Pointer.Zero;
+        Pointer ntHeadersAddress = Pointer.Zero;
+        Pointer[] importModuleBaseAddresses;
+        bool isInitialized = false;
+        DllEntryDelegate dllEntryPoint = null;
+        ExeEntryDelegate exeEntryPoint = null;
+        bool isRelocated = false;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
@@ -31,7 +31,7 @@ namespace StealthModule
             Disposed = false;
             if (data == null)
                 throw new ArgumentNullException("data");
-            MemoryLoadLibrary(data);
+            ManualMap(data);
         }
 
         ~MemoryModule()
@@ -81,32 +81,32 @@ namespace StealthModule
                 throw new ArgumentException("funcName");
             if (!IsDll)
                 throw new InvalidOperationException("Loaded Module is not a DLL");
-            if (!_initialized)
+            if (!isInitialized)
                 throw new InvalidOperationException("Dll is not initialized");
 
-            var pDirectory = pNTHeaders + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable));
+            var pDirectory = ntHeadersAddress + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable));
             var Directory = pDirectory.Read<ImageDataDirectory>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");
 
-            var pExports = pCode + Directory.VirtualAddress;
+            var pExports = moduleBaseAddress + Directory.VirtualAddress;
             var Exports = pExports.Read<ImageExportDirectory>();
             if (Exports.NumberOfFunctions == 0 || Exports.NumberOfNames == 0)
                 throw new ModuleException("Dll exports no functions");
 
-            var pNameRef = pCode + Exports.AddressOfNames;
-            var pOrdinal = pCode + Exports.AddressOfNameOrdinals;
+            var pNameRef = moduleBaseAddress + Exports.AddressOfNames;
+            var pOrdinal = moduleBaseAddress + Exports.AddressOfNameOrdinals;
             for (var i = 0; i < Exports.NumberOfNames; i++, pNameRef += sizeof(uint), pOrdinal += sizeof(ushort))
             {
                 var NameRef = pNameRef.Read<uint>();
                 var Ordinal = pOrdinal.Read<ushort>();
-                var curFuncName = Marshal.PtrToStringAnsi(pCode + NameRef);
+                var curFuncName = Marshal.PtrToStringAnsi(moduleBaseAddress + NameRef);
                 if (curFuncName == funcName)
                 {
                     if (Ordinal > Exports.NumberOfFunctions)
                         throw new ModuleException("Invalid function ordinal");
-                    var pAddressOfFunction = pCode + Exports.AddressOfFunctions + (uint)(Ordinal * 4);
-                    return pCode + pAddressOfFunction.Read<uint>();
+                    var pAddressOfFunction = moduleBaseAddress + Exports.AddressOfFunctions + (uint)(Ordinal * 4);
+                    return moduleBaseAddress + pAddressOfFunction.Read<uint>();
                 }
             }
 
@@ -121,9 +121,9 @@ namespace StealthModule
         {
             if (Disposed)
                 throw new ObjectDisposedException("DLLFromMemory");
-            if (IsDll || _exeEntry == null || !_isRelocated)
+            if (IsDll || exeEntryPoint == null || !isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
-            return _exeEntry();
+            return exeEntryPoint();
         }
 
         /// <summary>
@@ -142,26 +142,26 @@ namespace StealthModule
 
         public void Dispose()
         {
-            if (_initialized)
+            if (isInitialized)
             {
-                if (_dllEntry != null)
-                    _dllEntry.Invoke(pCode, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
-                _initialized = false;
+                if (dllEntryPoint != null)
+                    dllEntryPoint.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                isInitialized = false;
             }
 
-            if (ImportModules != null)
+            if (importModuleBaseAddresses != null)
             {
-                foreach (var m in ImportModules)
+                foreach (var m in importModuleBaseAddresses)
                     if (!m.IsInvalidHandle())
                         NativeMethods.FreeLibrary(m);
-                ImportModules = null;
+                importModuleBaseAddresses = null;
             }
 
-            if (pCode != Pointer.Zero)
+            if (moduleBaseAddress != Pointer.Zero)
             {
-                NativeMethods.VirtualFree(pCode, IntPtr.Zero, AllocationType.RELEASE);
-                pCode = Pointer.Zero;
-                pNTHeaders = Pointer.Zero;
+                NativeMethods.VirtualFree(moduleBaseAddress, IntPtr.Zero, AllocationType.RELEASE);
+                moduleBaseAddress = Pointer.Zero;
+                ntHeadersAddress = Pointer.Zero;
             }
 
             Disposed = true;

@@ -5,58 +5,58 @@ namespace StealthModule
 {
     public partial class MemoryModule
     {
-        static Pointer[] BuildImportTable(ref ImageNtHeaders OrgNTHeaders, Pointer pCode)
+        static Pointer[] BuildImportTable(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress)
         {
-            var ImportModules = new System.Collections.Generic.List<Pointer>();
-            var NumEntries = OrgNTHeaders.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
-            var pImportDesc = pCode + OrgNTHeaders.OptionalHeader.ImportTable.VirtualAddress;
-            for (uint i = 0; i != NumEntries; i++, pImportDesc += NativeSizes.IMAGE_IMPORT_DESCRIPTOR)
+            var importModuleBaseAddresses = new System.Collections.Generic.List<Pointer>();
+            var numEntries = ntHeadersData.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
+            var importDescriptorAddress = moduleBaseAddress + ntHeadersData.OptionalHeader.ImportTable.VirtualAddress;
+            for (uint i = 0; i != numEntries; i++, importDescriptorAddress += NativeSizes.IMAGE_IMPORT_DESCRIPTOR)
             {
-                var ImportDesc = pImportDesc.Read<ImageImportDescriptor>();
-                if (ImportDesc.Name == 0)
+                var importDescriptor = importDescriptorAddress.Read<ImageImportDescriptor>();
+                if (importDescriptor.Name == 0)
                     break;
 
-                var handle = NativeMethods.LoadLibrary(pCode + ImportDesc.Name);
+                var handle = NativeMethods.LoadLibrary(moduleBaseAddress + importDescriptor.Name);
                 if (handle.IsInvalidHandle())
                 {
-                    foreach (var m in ImportModules)
+                    foreach (var m in importModuleBaseAddresses)
                         NativeMethods.FreeLibrary(m);
-                    ImportModules.Clear();
-                    throw new ModuleException("Can't load libary " + Marshal.PtrToStringAnsi(pCode + ImportDesc.Name));
+                    importModuleBaseAddresses.Clear();
+                    throw new ModuleException("Can't load libary " + Marshal.PtrToStringAnsi(moduleBaseAddress + importDescriptor.Name));
                 }
-                ImportModules.Add(handle);
+                importModuleBaseAddresses.Add(handle);
 
-                Pointer pThunkRef, pFuncRef;
-                if (ImportDesc.OriginalFirstThunk > 0)
+                Pointer thunkRef, functionRef;
+                if (importDescriptor.OriginalFirstThunk > 0)
                 {
-                    pThunkRef = pCode + ImportDesc.OriginalFirstThunk;
-                    pFuncRef = pCode + ImportDesc.FirstThunk;
+                    thunkRef = moduleBaseAddress + importDescriptor.OriginalFirstThunk;
+                    functionRef = moduleBaseAddress + importDescriptor.FirstThunk;
                 }
                 else
                 {
                     // no hint table
-                    pThunkRef = pCode + ImportDesc.FirstThunk;
-                    pFuncRef = pCode + ImportDesc.FirstThunk;
+                    thunkRef = moduleBaseAddress + importDescriptor.FirstThunk;
+                    functionRef = moduleBaseAddress + importDescriptor.FirstThunk;
                 }
-                for (var SzRef = Pointer.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
+                for (var pointerSize = Pointer.Size; ; thunkRef += pointerSize, functionRef += pointerSize)
                 {
-                    Pointer ReadThunkRef = pThunkRef.Read(), WriteFuncRef;
-                    if (ReadThunkRef == Pointer.Zero)
+                    Pointer readThunkRef = thunkRef.Read(), writeFuncRef;
+                    if (readThunkRef == Pointer.Zero)
                         break;
-                    if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(ReadThunkRef))
+                    if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(readThunkRef))
                     {
-                        WriteFuncRef = NativeMethods.GetProcAddress(handle, NativeMethods.IMAGE_ORDINAL(ReadThunkRef));
+                        writeFuncRef = NativeMethods.GetProcAddress(handle, NativeMethods.IMAGE_ORDINAL(readThunkRef));
                     }
                     else
                     {
-                        WriteFuncRef = NativeMethods.GetProcAddress(handle, pCode + ReadThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name);
+                        writeFuncRef = NativeMethods.GetProcAddress(handle, moduleBaseAddress + readThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name);
                     }
-                    if (WriteFuncRef == Pointer.Zero)
+                    if (writeFuncRef == Pointer.Zero)
                         throw new ModuleException("Can't get adress for imported function");
-                    pFuncRef.Write(WriteFuncRef);
+                    functionRef.Write(writeFuncRef);
                 }
             }
-            return ImportModules.Count > 0 ? ImportModules.ToArray() : null;
+            return importModuleBaseAddresses.Count > 0 ? importModuleBaseAddresses.ToArray() : null;
         }
 
     }

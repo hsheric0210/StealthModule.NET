@@ -8,18 +8,19 @@ namespace StealthModule
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         delegate void ImageTlsDelegate(IntPtr dllHandle, DllReason reason, IntPtr reserved);
 
-        static void ExecuteTLS(ref ImageNtHeaders OrgNTHeaders, Pointer pCode, Pointer pNTHeaders)
+        static void ExecuteTLS(ref ImageNtHeaders ntHeaders, Pointer moduleBaseAddress)
         {
-            if (OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress == 0)
+            if (ntHeaders.OptionalHeader.TLSTable.VirtualAddress == 0)
                 return;
-            var tlsDir = (pCode + OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<ImageTlsDirectory>();
-            Pointer pCallBack = tlsDir.AddressOfCallBacks;
-            if (pCallBack != Pointer.Zero)
+
+            var tlsDir = (moduleBaseAddress + ntHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<ImageTlsDirectory>();
+            Pointer callBackAddress = tlsDir.AddressOfCallBacks;
+            if (callBackAddress != Pointer.Zero)
             {
-                for (Pointer Callback; (Callback = pCallBack.Read()) != Pointer.Zero; pCallBack += Pointer.Size)
+                for (Pointer Callback; (Callback = callBackAddress.Read()) != Pointer.Zero; callBackAddress += Pointer.Size)
                 {
                     var tls = (ImageTlsDelegate)Marshal.GetDelegateForFunctionPointer(Callback, typeof(ImageTlsDelegate));
-                    tls(pCode, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
+                    tls(moduleBaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
                 }
             }
         }

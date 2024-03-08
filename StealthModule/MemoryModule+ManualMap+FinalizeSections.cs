@@ -7,23 +7,23 @@ namespace StealthModule
         static void FinalizeSections(ref ImageNtHeaders OrgNTHeaders, Pointer pCode, Pointer pNTHeaders, uint PageSize)
         {
             var imageOffset = Is64BitProcess ? (UIntPtr)(((ulong)pCode) & 0xffffffff00000000) : UIntPtr.Zero;
-            var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
-            var Section = pSection.Read<ImageSectionHeader>();
+            var sectionOffset = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
+            var sectionHeader = sectionOffset.Read<ImageSectionHeader>();
             var sectionData = new SectionFinalizeData();
-            sectionData.Address = (Pointer.Zero + Section.PhysicalAddress) | imageOffset;
+            sectionData.Address = (Pointer.Zero + sectionHeader.PhysicalAddress) | imageOffset;
             sectionData.AlignedAddress = sectionData.Address.AlignDown((UIntPtr)PageSize);
-            sectionData.Size = GetRealSectionSize(ref Section, ref OrgNTHeaders);
-            sectionData.Characteristics = Section.Characteristics;
+            sectionData.Size = GetRealSectionSize(ref sectionHeader, ref OrgNTHeaders);
+            sectionData.Characteristics = sectionHeader.Characteristics;
             sectionData.Last = false;
-            pSection += NativeSizes.IMAGE_SECTION_HEADER;
+            sectionOffset += NativeSizes.IMAGE_SECTION_HEADER;
 
             // loop through all sections and change access flags
-            for (var i = 1; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, pSection += NativeSizes.IMAGE_SECTION_HEADER)
+            for (var i = 1; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, sectionOffset += NativeSizes.IMAGE_SECTION_HEADER)
             {
-                Section = pSection.Read<ImageSectionHeader>();
-                var sectionAddress = (Pointer.Zero + Section.PhysicalAddress) | imageOffset;
+                sectionHeader = sectionOffset.Read<ImageSectionHeader>();
+                var sectionAddress = (Pointer.Zero + sectionHeader.PhysicalAddress) | imageOffset;
                 var alignedAddress = sectionAddress.AlignDown((UIntPtr)PageSize);
-                var sectionSize = GetRealSectionSize(ref Section, ref OrgNTHeaders);
+                var sectionSize = GetRealSectionSize(ref sectionHeader, ref OrgNTHeaders);
 
                 // Combine access flags of all sections that share a page
                 // TODO(fancycode): We currently share flags of a trailing large section with the page of a first small section. This should be optimized.
@@ -31,13 +31,13 @@ namespace StealthModule
                 if (sectionData.AlignedAddress == alignedAddress || unchecked((ulong)(sectionData.Address + sectionData.Size)) > unchecked((ulong)alignedAddress))
                 {
                     // Section shares page with previous
-                    if ((Section.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0)
+                    if ((sectionHeader.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0)
                     {
-                        sectionData.Characteristics = (sectionData.Characteristics | Section.Characteristics) & ~NativeMagics.IMAGE_SCN_MEM_DISCARDABLE;
+                        sectionData.Characteristics = (sectionData.Characteristics | sectionHeader.Characteristics) & ~NativeMagics.IMAGE_SCN_MEM_DISCARDABLE;
                     }
                     else
                     {
-                        sectionData.Characteristics |= Section.Characteristics;
+                        sectionData.Characteristics |= sectionHeader.Characteristics;
                     }
                     sectionData.Size = sectionAddress + sectionSize - sectionData.Address;
                     continue;
@@ -48,64 +48,64 @@ namespace StealthModule
                 sectionData.Address = sectionAddress;
                 sectionData.AlignedAddress = alignedAddress;
                 sectionData.Size = sectionSize;
-                sectionData.Characteristics = Section.Characteristics;
+                sectionData.Characteristics = sectionHeader.Characteristics;
             }
             sectionData.Last = true;
             FinalizeSection(sectionData, PageSize, OrgNTHeaders.OptionalHeader.SectionAlignment);
         }
 
-        static void FinalizeSection(SectionFinalizeData SectionData, uint PageSize, uint SectionAlignment)
+        static void FinalizeSection(SectionFinalizeData sectionData, uint pageSize, uint sectionAlignment)
         {
-            if (SectionData.Size == Pointer.Zero)
+            if (sectionData.Size == Pointer.Zero)
                 return;
 
-            if ((SectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) > 0)
+            if ((sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) > 0)
             {
                 // section is not needed any more and can safely be freed
-                if (SectionData.Address == SectionData.AlignedAddress &&
-                    (SectionData.Last ||
-                        SectionAlignment == PageSize ||
-                        unchecked((ulong)SectionData.Size) % PageSize == 0)
+                if (sectionData.Address == sectionData.AlignedAddress &&
+                    (sectionData.Last ||
+                        sectionAlignment == pageSize ||
+                        unchecked((ulong)sectionData.Size) % pageSize == 0)
                     )
                 {
                     // Only allowed to decommit whole pages
-                    NativeMethods.VirtualFree(SectionData.Address, SectionData.Size, AllocationType.DECOMMIT);
+                    NativeMethods.VirtualFree(sectionData.Address, sectionData.Size, AllocationType.DECOMMIT);
                 }
                 return;
             }
 
             // determine protection flags based on characteristics
-            var readable = (SectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_READ) != 0 ? 1 : 0;
-            var writeable = (SectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_WRITE) != 0 ? 1 : 0;
-            var executable = (SectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_EXECUTE) != 0 ? 1 : 0;
-            var protect = ProtectionFlags[executable, readable, writeable];
-            if ((SectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_NOT_CACHED) > 0)
+            var readable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_READ) != 0 ? 1 : 0;
+            var writeable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_WRITE) != 0 ? 1 : 0;
+            var executable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_EXECUTE) != 0 ? 1 : 0;
+            var protect = protectionFlags[executable, readable, writeable];
+            if ((sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_NOT_CACHED) > 0)
                 protect |= MemoryProtection.NOCACHE;
 
             // change memory access flags
-            if (!NativeMethods.VirtualProtect(SectionData.Address, SectionData.Size, protect, out var oldProtect))
+            if (!NativeMethods.VirtualProtect(sectionData.Address, sectionData.Size, protect, out var oldProtect))
                 throw new ModuleException("Error protecting memory page");
         }
 
-        static Pointer GetRealSectionSize(ref ImageSectionHeader Section, ref ImageNtHeaders NTHeaders)
+        static Pointer GetRealSectionSize(ref ImageSectionHeader section, ref ImageNtHeaders ntHeaders)
         {
-            var size = Section.SizeOfRawData;
+            var size = section.SizeOfRawData;
             if (size == 0)
             {
-                if ((Section.Characteristics & NativeMagics.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
+                if ((section.Characteristics & NativeMagics.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
                 {
-                    size = NTHeaders.OptionalHeader.SizeOfInitializedData;
+                    size = ntHeaders.OptionalHeader.SizeOfInitializedData;
                 }
-                else if ((Section.Characteristics & NativeMagics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
+                else if ((section.Characteristics & NativeMagics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
                 {
-                    size = NTHeaders.OptionalHeader.SizeOfUninitializedData;
+                    size = ntHeaders.OptionalHeader.SizeOfUninitializedData;
                 }
             }
             return Is64BitProcess ? (Pointer)size : (Pointer)unchecked((int)size);
         }
 
         // Protection flags for memory pages (Executable, Readable, Writeable)
-        static readonly MemoryProtection[,,] ProtectionFlags = new MemoryProtection[2, 2, 2]
+        static readonly MemoryProtection[,,] protectionFlags = new MemoryProtection[2, 2, 2]
         {
         {
             // not executable
