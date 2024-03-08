@@ -56,7 +56,7 @@ namespace StealthModule
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate)))
                 throw new ArgumentException(typeof(TDelegate).Name + " is not a delegate");
-            if (!(Marshal.GetDelegateForFunctionPointer(WalkEDT(funcName), typeof(TDelegate)) is TDelegate res))
+            if (!(Marshal.GetDelegateForFunctionPointer(GetExport(funcName), typeof(TDelegate)) is TDelegate res))
                 throw new ModuleException("Unable to get managed delegate");
 
             return res;
@@ -75,14 +75,14 @@ namespace StealthModule
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
 
-            var res = Marshal.GetDelegateForFunctionPointer(WalkEDT(funcName), delegateType);
+            var res = Marshal.GetDelegateForFunctionPointer(GetExport(funcName), delegateType);
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
 
             return res;
         }
 
-        internal Pointer WalkEDT(string funcName)
+        public Pointer GetExport(string funcName)
         {
             if (Disposed)
                 throw new ObjectDisposedException("MemoryModule");
