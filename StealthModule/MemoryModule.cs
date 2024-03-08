@@ -84,7 +84,7 @@ namespace StealthModule
 
         ~MemoryModule()
         {
-            Dispose();
+            Dispose(false);
         }
 
         /// <summary>
@@ -142,11 +142,11 @@ namespace StealthModule
 
         void IDisposable.Dispose()
         {
-            Dispose();
+            Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        public void Dispose()
+        protected void Dispose(bool disposing)
         {
             if (isInitialized)
             {
@@ -154,10 +154,13 @@ namespace StealthModule
                 isInitialized = false;
             }
 
-            foreach (var m in importedModuleHandles)
+            if (importedModuleHandles != null)
             {
-                if (!m.IsInvalidHandle())
-                    NativeMethods.FreeLibrary(m);
+                foreach (var m in importedModuleHandles)
+                {
+                    if (!m.IsInvalidHandle())
+                        NativeMethods.FreeLibrary(m);
+                }
             }
 
             importedModuleHandles = null;

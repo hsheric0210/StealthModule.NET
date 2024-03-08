@@ -61,19 +61,19 @@ namespace StealthModule
         internal const int IMAGE_IMPORT_BY_NAME_Name = 2;
     }
 
-    internal class Of32
+    internal static class Of32
     {
         internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 28;
         internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 96;
     }
 
-    internal class Of64
+    internal static class Of64
     {
         internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 24;
         internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 112;
     }
 
-    internal class Sz
+    internal static class Sz
     {
         internal const int IMAGE_SECTION_HEADER = 40;
         internal const int IMAGE_BASE_RELOCATION = 8;

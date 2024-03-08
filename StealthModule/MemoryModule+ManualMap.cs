@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public partial class MemoryModule : IDisposable
+    public partial class MemoryModule
     {
         private void ManualMap(byte[] data)
         {
@@ -93,9 +93,6 @@ namespace StealthModule
             if (addressDelta != Pointer.Zero)
             {
                 // update relocated position
-                // fixme: is those OffsetOf calls necessary?
-                Marshal.OffsetOf(typeof(IMAGE_NT_HEADERS), "OptionalHeader");
-                Marshal.OffsetOf(typeof(IMAGE_OPTIONAL_HEADER), "ImageBaseLong");
                 var pImageBase = ntHeaders + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ImageBase : Of32.IMAGE_OPTIONAL_HEADER_ImageBase);
                 pImageBase.Write(moduleBase);
             }

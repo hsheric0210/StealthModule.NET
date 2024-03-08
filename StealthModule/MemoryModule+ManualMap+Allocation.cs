@@ -44,7 +44,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public partial class MemoryModule : IDisposable
+    public partial class MemoryModule
     {
         private static Pointer AllocateAndCopyHeaders(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, byte[] data)
         {
