@@ -25,36 +25,10 @@ namespace RunDll32
 
             var dllName = pieces[0];
             var entryPoint = pieces[1];
-            RunDLL2(dllName, entryPoint);
+            RunDLL(dllName, entryPoint);
         }
 
         private delegate void DllEntryPoint();
-
-        private static void RunDLL2(string dllName, string entryPointName)
-        {
-            if (!File.Exists(dllName))
-            {
-                Console.WriteLine("  [-] DLL file doesn't exist: " + dllName);
-                return;
-            }
-
-            var dllBytes = File.ReadAllBytes(dllName);
-            Console.WriteLine("  [+] Read " + dllBytes.Length + " bytes from the disk. Begin manual mapping...");
-
-            var module = new DLLFromMemory(dllBytes);
-            Thread.Sleep(50000);
-            var entryPoint = module.GetDelegateFromFuncName<DllEntryPoint>(entryPointName);
-
-            try
-            {
-                entryPoint();
-                Console.WriteLine("  [+] The entry point call was successful.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("  [+] The entry point call failed with an exception: " + ex);
-            }
-        }
 
         private static void RunDLL(string dllName, string entryPointName)
         {
@@ -69,7 +43,7 @@ namespace RunDll32
 
             var module = new MemoryModule(dllBytes);
 
-            var entryPoint = module.GetExport(entryPointName);
+            var entryPoint = (Pointer)module.GetPtrFromFuncName(entryPointName);
             if (entryPoint == Pointer.Zero)
             {
                 Console.WriteLine("  [-] The entry point function " + entryPointName + " not found.");

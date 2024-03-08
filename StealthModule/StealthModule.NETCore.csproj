@@ -20,8 +20,11 @@
 
     <ItemGroup>
         <!-- Don't include items from the "bin" and "obj" folders used by the .NET Framework projects. -->
+        <EmbeddedResource Remove="broken\**" />
         <None Remove="bin/**/*.*" />
+        <None Remove="broken\**" />
         <None Remove="obj/**/*.*" />
+        <Compile Remove="broken\**" />
         <Compile Remove="obj/**/*.*" />
     </ItemGroup>
 
