@@ -18,6 +18,7 @@ namespace StealthModule
                 Characteristics = sectionHeader.Characteristics,
                 Last = false
             };
+
             sectionOffset += NativeSizes.IMAGE_SECTION_HEADER;
 
             // loop through all sections and change access flags
@@ -35,13 +36,10 @@ namespace StealthModule
                 {
                     // Section shares page with previous
                     if ((sectionHeader.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0)
-                    {
                         sectionData.Characteristics = (sectionData.Characteristics | sectionHeader.Characteristics) & ~NativeMagics.IMAGE_SCN_MEM_DISCARDABLE;
-                    }
                     else
-                    {
                         sectionData.Characteristics |= sectionHeader.Characteristics;
-                    }
+
                     sectionData.Size = sectionAddress + sectionSize - sectionData.Address;
                     continue;
                 }
@@ -53,6 +51,7 @@ namespace StealthModule
                 sectionData.Size = sectionSize;
                 sectionData.Characteristics = sectionHeader.Characteristics;
             }
+
             sectionData.Last = true;
             FinalizeSection(sectionData, PageSize, OrgNTHeaders.OptionalHeader.SectionAlignment);
         }
@@ -65,15 +64,12 @@ namespace StealthModule
             if ((sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) > 0)
             {
                 // section is not needed any more and can safely be freed
-                if (sectionData.Address == sectionData.AlignedAddress &&
-                    (sectionData.Last ||
-                        sectionAlignment == pageSize ||
-                        unchecked((ulong)sectionData.Size) % pageSize == 0)
-                    )
+                if (sectionData.Address == sectionData.AlignedAddress && (sectionData.Last || sectionAlignment == pageSize || (ulong)sectionData.Size % pageSize == 0))
                 {
                     // Only allowed to decommit whole pages
                     NativeMethods.VirtualFree(sectionData.Address, sectionData.Size, AllocationType.DECOMMIT);
                 }
+
                 return;
             }
 
@@ -86,7 +82,7 @@ namespace StealthModule
                 protect |= MemoryProtection.NOCACHE;
 
             // change memory access flags
-            if (!NativeMethods.VirtualProtect(sectionData.Address, sectionData.Size, protect, out var oldProtect))
+            if (!NativeMethods.VirtualProtect(sectionData.Address, sectionData.Size, protect, out _))
                 throw new ModuleException("Error protecting memory page");
         }
 
@@ -96,14 +92,11 @@ namespace StealthModule
             if (size == 0)
             {
                 if ((section.Characteristics & NativeMagics.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
-                {
                     size = ntHeaders.OptionalHeader.SizeOfInitializedData;
-                }
                 else if ((section.Characteristics & NativeMagics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
-                {
                     size = ntHeaders.OptionalHeader.SizeOfUninitializedData;
-                }
             }
+
             return Is64BitProcess ? (Pointer)size : (Pointer)unchecked((int)size);
         }
 

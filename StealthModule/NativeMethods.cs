@@ -13,10 +13,6 @@ namespace StealthModule
         private delegate void DGetNativeSystemInfo(out SystemInfo lpSystemInfo);
         private delegate IntPtr DGetProcAddress(IntPtr hModule, IntPtr procName);
 
-        // remove this later
-        [DllImport("msvcrt.dll", EntryPoint = "memset", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-        public static extern IntPtr MemSet(IntPtr dest, int c, UIntPtr count);
-
         static bool nativeInitialized;
         private static DLoadLibrary loadLibrary;
         private static DFreeLibrary freeLibrary;

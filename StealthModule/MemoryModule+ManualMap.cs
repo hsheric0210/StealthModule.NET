@@ -8,23 +8,23 @@ namespace StealthModule
         private void ManualMap(byte[] data)
         {
             if (data.Length < Marshal.SizeOf(typeof(ImageDosHeader)))
-                throw new ModuleException("Not a valid executable file");
+                throw new BadImageFormatException("DOS header too small");
             var dosHeader = Structs.ReadOffset<ImageDosHeader>(data, 0);
             if (dosHeader.e_magic != NativeMagics.IMAGE_DOS_SIGNATURE)
-                throw new BadImageFormatException("Not a valid executable file");
-
+                throw new BadImageFormatException("Invalid DOS header magic");
             if (data.Length < dosHeader.e_lfanew + Marshal.SizeOf(typeof(ImageNtHeaders)))
-                throw new ModuleException("Not a valid executable file");
+                throw new BadImageFormatException("No sections found");
+
             var ntHeadersData = Structs.ReadOffset<ImageNtHeaders>(data, dosHeader.e_lfanew);
 
             if (ntHeadersData.Signature != NativeMagics.IMAGE_NT_SIGNATURE)
-                throw new BadImageFormatException("Not a valid PE file");
+                throw new BadImageFormatException("Invalid NT Headers signature");
             if (ntHeadersData.FileHeader.Machine != GetMachineType())
                 throw new BadImageFormatException("Machine type doesn't fit (i386 vs. AMD64)");
             if ((ntHeadersData.OptionalHeader.SectionAlignment & 1) > 0)
                 throw new BadImageFormatException("Wrong section alignment"); //Only support multiple of 2
             if (ntHeadersData.OptionalHeader.AddressOfEntryPoint == 0)
-                throw new ModuleException("Module has no entry point");
+                throw new ModuleException("Module has no entry point"); // todo: allow manual-map entrypoint-less modules
 
             NativeMethods.GetNativeSystemInfo(out var systemInfo);
             uint lastSectionEnd = 0;

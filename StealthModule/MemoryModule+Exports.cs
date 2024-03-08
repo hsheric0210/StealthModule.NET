@@ -15,9 +15,11 @@ namespace StealthModule
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate)))
                 throw new ArgumentException(typeof(TDelegate).Name + " is not a delegate");
+
             var res = Marshal.GetDelegateForFunctionPointer(GetExportAddress(functionName), typeof(TDelegate)) as TDelegate;
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
+
             return res;
         }
 
@@ -33,9 +35,11 @@ namespace StealthModule
                 throw new ArgumentNullException("delegateType");
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
+
             var res = Marshal.GetDelegateForFunctionPointer(GetExportAddress(functionName), delegateType);
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
+
             return res;
         }
 
@@ -71,6 +75,7 @@ namespace StealthModule
                 {
                     if (exportOrdinal > exportDirectory.NumberOfFunctions)
                         throw new ModuleException("Invalid function ordinal");
+
                     var exportAddress = moduleBaseAddress + exportDirectory.AddressOfFunctions + (uint)(exportOrdinal * 4);
                     return moduleBaseAddress + exportAddress.Read<uint>();
                 }

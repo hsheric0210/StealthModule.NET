@@ -47,8 +47,8 @@ namespace StealthModule
                 // advance to next relocation block
                 relocationAddress += relocation.SizeOfBlock;
             }
+
             return true;
         }
-
     }
 }

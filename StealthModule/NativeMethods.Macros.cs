@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace StealthModule
+﻿namespace StealthModule
 {
     internal partial class NativeMethods
     {

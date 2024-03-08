@@ -49,6 +49,7 @@ namespace StealthModule
                 throw new ObjectDisposedException("DLLFromMemory");
             if (IsDll || exeEntryPoint == null || !isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
+
             return exeEntryPoint();
         }
 
@@ -70,16 +71,19 @@ namespace StealthModule
         {
             if (wasDllMainSuccessful)
             {
-                if (dllEntryPoint != null)
-                    dllEntryPoint.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                dllEntryPoint?.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+
                 wasDllMainSuccessful = false;
             }
 
             if (importModuleBaseAddresses != null)
             {
                 foreach (var m in importModuleBaseAddresses)
+                {
                     if (!m.IsInvalidHandle())
                         NativeMethods.FreeLibrary(m);
+                }
+
                 importModuleBaseAddresses = null;
             }
 

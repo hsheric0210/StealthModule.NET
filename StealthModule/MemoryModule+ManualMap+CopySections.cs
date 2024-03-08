@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
@@ -29,7 +28,6 @@ namespace StealthModule
 
                         var zeros = new byte[size];
                         Marshal.Copy(zeros, 0, dest, unchecked((int)size));
-                        //NativeMethods.MemSet(dest, 0, (UIntPtr)size);
                     }
 
                     // section is empty
@@ -50,6 +48,5 @@ namespace StealthModule
                 }
             }
         }
-
     }
 }
