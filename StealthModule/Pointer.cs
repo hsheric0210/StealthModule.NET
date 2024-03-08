@@ -40,9 +40,10 @@ namespace StealthModule
 
         public T Read<T>() => (T)Marshal.PtrToStructure(this, typeof(T));
 
-        public Pointer ReadPointer() => (Pointer)(IntPtr)Marshal.PtrToStructure(this, typeof(IntPtr));
+        public Pointer Read() => (Pointer)(IntPtr)Marshal.PtrToStructure(this, typeof(IntPtr));
 
         public void Write<T>(T buffer) => Marshal.StructureToPtr(buffer, this, false);
+        public void Write(Pointer buffer) => Marshal.StructureToPtr((IntPtr)buffer, this, false);
 
         // Pointer arithmetics
 

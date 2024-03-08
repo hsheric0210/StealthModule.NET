@@ -22,9 +22,6 @@ namespace StealthModule
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         delegate int ExeEntryDelegate();
 
-        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        delegate void ImageTlsDelegate(IntPtr dllHandle, DllReason reason, IntPtr reserved);
-
         /// <summary>
         /// Loads a unmanged (native) DLL in the memory.
         /// </summary>
@@ -52,7 +49,7 @@ namespace StealthModule
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate)))
                 throw new ArgumentException(typeof(TDelegate).Name + " is not a delegate");
-            var res = Marshal.GetDelegateForFunctionPointer((IntPtr)GetPtrFromFuncName(funcName), typeof(TDelegate)) as TDelegate;
+            var res = Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), typeof(TDelegate)) as TDelegate;
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
             return res;
@@ -76,7 +73,7 @@ namespace StealthModule
             return res;
         }
 
-        public IntPtr GetPtrFromFuncName(string funcName)
+        public Pointer GetPtrFromFuncName(string funcName)
         {
             if (Disposed)
                 throw new ObjectDisposedException("DLLFromMemory");
@@ -163,8 +160,8 @@ namespace StealthModule
             if (pCode != Pointer.Zero)
             {
                 NativeMethods.VirtualFree(pCode, IntPtr.Zero, AllocationType.RELEASE);
-                pCode = IntPtr.Zero;
-                pNTHeaders = IntPtr.Zero;
+                pCode = Pointer.Zero;
+                pNTHeaders = Pointer.Zero;
             }
 
             Disposed = true;

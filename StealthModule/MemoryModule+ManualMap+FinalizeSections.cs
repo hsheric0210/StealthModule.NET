@@ -6,7 +6,7 @@ namespace StealthModule
     {
         static void FinalizeSections(ref ImageNtHeaders OrgNTHeaders, Pointer pCode, Pointer pNTHeaders, uint PageSize)
         {
-            var imageOffset = Is64BitProcess ? (UIntPtr)(unchecked((ulong)(long)pCode) & 0xffffffff00000000) : UIntPtr.Zero;
+            var imageOffset = Is64BitProcess ? (UIntPtr)(((ulong)pCode) & 0xffffffff00000000) : UIntPtr.Zero;
             var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
             var Section = pSection.Read<ImageSectionHeader>();
             var sectionData = new SectionFinalizeData();
@@ -87,7 +87,7 @@ namespace StealthModule
                 throw new ModuleException("Error protecting memory page");
         }
 
-        static IntPtr GetRealSectionSize(ref ImageSectionHeader Section, ref ImageNtHeaders NTHeaders)
+        static Pointer GetRealSectionSize(ref ImageSectionHeader Section, ref ImageNtHeaders NTHeaders)
         {
             var size = Section.SizeOfRawData;
             if (size == 0)
@@ -101,7 +101,7 @@ namespace StealthModule
                     size = NTHeaders.OptionalHeader.SizeOfUninitializedData;
                 }
             }
-            return Is64BitProcess ? (IntPtr)unchecked((long)size) : (IntPtr)unchecked((int)size);
+            return Is64BitProcess ? (Pointer)size : (Pointer)unchecked((int)size);
         }
 
         // Protection flags for memory pages (Executable, Readable, Writeable)

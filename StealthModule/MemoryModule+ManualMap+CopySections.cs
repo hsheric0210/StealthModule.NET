@@ -17,8 +17,8 @@ namespace StealthModule
                     var size = OrgNTHeaders.OptionalHeader.SectionAlignment;
                     if (size > 0)
                     {
-                        IntPtr dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, (UIntPtr)size, AllocationType.COMMIT, MemoryProtection.READWRITE);
-                        if (dest == IntPtr.Zero)
+                        var dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, size, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                        if (dest == Pointer.Zero)
                             throw new ModuleException("Unable to allocate memory");
 
                         // Always use position from file to support alignments smaller than page size (allocation above will align to page size).
@@ -27,7 +27,9 @@ namespace StealthModule
                         // NOTE: On 64bit systems we truncate to 32bit here but expand again later when "PhysicalAddress" is used.
                         (pSection + NativeOffsets.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
 
-                        NativeMethods.MemSet(dest, 0, (UIntPtr)size);
+                        var zeros = new byte[size];
+                        Marshal.Copy(zeros, 0, dest, unchecked((int)size));
+                        //NativeMethods.MemSet(dest, 0, (UIntPtr)size);
                     }
 
                     // section is empty
@@ -35,8 +37,8 @@ namespace StealthModule
                 else
                 {
                     // commit memory block and copy data from dll
-                    IntPtr dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, (UIntPtr)Section.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
-                    if (dest == IntPtr.Zero)
+                    var dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, Section.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    if (dest == Pointer.Zero)
                         throw new ModuleException("Out of memory");
 
                     // Always use position from file to support alignments smaller than page size (allocation above will align to page size).

@@ -14,6 +14,6 @@ namespace StealthModule
         internal static Pointer IMAGE_ORDINAL(Pointer ordinal) => (Pointer)(uint)((ulong)ordinal & 0xffff);
 
         // Equivalent to the IMAGE_SNAP_BY_ORDINAL32/64 macro
-        internal static bool IMAGE_SNAP_BY_ORDINAL(Pointer ordinal) => Is64BitProcess ? ((long)ordinal < 0) : ((int)ordinal < 0);
+        internal static bool IMAGE_SNAP_BY_ORDINAL(Pointer ordinal) => Pointer.Is64Bit ? ((long)ordinal < 0) : ((int)ordinal < 0);
     }
 }

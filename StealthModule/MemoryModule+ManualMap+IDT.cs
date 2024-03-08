@@ -19,7 +19,7 @@ namespace StealthModule
                 var handle = NativeMethods.LoadLibrary(pCode + ImportDesc.Name);
                 if (handle.IsInvalidHandle())
                 {
-                    foreach (IntPtr m in ImportModules)
+                    foreach (var m in ImportModules)
                         NativeMethods.FreeLibrary(m);
                     ImportModules.Clear();
                     throw new ModuleException("Can't load libary " + Marshal.PtrToStringAnsi(pCode + ImportDesc.Name));
@@ -38,10 +38,10 @@ namespace StealthModule
                     pThunkRef = pCode + ImportDesc.FirstThunk;
                     pFuncRef = pCode + ImportDesc.FirstThunk;
                 }
-                for (var SzRef = IntPtr.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
+                for (var SzRef = Pointer.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
                 {
-                    IntPtr ReadThunkRef = pThunkRef.Read<IntPtr>(), WriteFuncRef;
-                    if (ReadThunkRef == IntPtr.Zero)
+                    Pointer ReadThunkRef = pThunkRef.Read(), WriteFuncRef;
+                    if (ReadThunkRef == Pointer.Zero)
                         break;
                     if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(ReadThunkRef))
                     {
@@ -51,7 +51,7 @@ namespace StealthModule
                     {
                         WriteFuncRef = NativeMethods.GetProcAddress(handle, pCode + ReadThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name);
                     }
-                    if (WriteFuncRef == IntPtr.Zero)
+                    if (WriteFuncRef == Pointer.Zero)
                         throw new ModuleException("Can't get adress for imported function");
                     pFuncRef.Write(WriteFuncRef);
                 }
