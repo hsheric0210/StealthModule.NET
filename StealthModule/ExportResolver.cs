@@ -74,6 +74,24 @@ namespace StealthModule
             return ordinalMapping[functionOrdinal] = address;
         }
 
+        // Utility overloads
+
+        public Delegate GetExport(string functionName, Type delegateType)
+            => Marshal.GetDelegateForFunctionPointer(GetExport(functionName), delegateType);
+
+        public Delegate GetExport(short functionOrdinal, Type delegateType)
+            => Marshal.GetDelegateForFunctionPointer(GetExport(functionOrdinal), delegateType);
+
+#if NET451_OR_GREATER
+        public TDelegate GetExport<TDelegate>(string functionName)
+            => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExport(functionName));
+
+        public TDelegate GetExport<TDelegate>(short functionOrdinal)
+            => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExport(functionOrdinal));
+#endif
+
+        // Export table walk
+
         public delegate bool ExportCallback(ExportEntry entry);
 
         public readonly struct ExportEntry
