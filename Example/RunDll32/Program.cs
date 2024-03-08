@@ -42,7 +42,7 @@ namespace RunDll32
 
             var module = new MemoryModule(dllBytes);
 
-            var entryPoint = (Pointer)module.GetPtrFromFuncName(entryPointName);
+            var entryPoint = (Pointer)module.GetExportAddress(entryPointName);
             if (entryPoint == Pointer.Zero)
             {
                 Console.WriteLine("  [-] The entry point function " + entryPointName + " not found.");

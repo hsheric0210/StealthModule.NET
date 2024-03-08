@@ -43,13 +43,13 @@ namespace StealthModule
         /// Returns a delegate for a function inside the DLL.
         /// </summary>
         /// <typeparam name="TDelegate">The type of the delegate.</typeparam>
-        /// <param name="funcName">The name of the function to be searched.</param>
+        /// <param name="functionName">The name of the function to be searched.</param>
         /// <returns>A delegate instance of type TDelegate</returns>
-        public TDelegate GetDelegateFromFuncName<TDelegate>(string funcName) where TDelegate : class
+        public TDelegate GetExport<TDelegate>(string functionName) where TDelegate : class
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate)))
                 throw new ArgumentException(typeof(TDelegate).Name + " is not a delegate");
-            var res = Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), typeof(TDelegate)) as TDelegate;
+            var res = Marshal.GetDelegateForFunctionPointer(GetExportAddress(functionName), typeof(TDelegate)) as TDelegate;
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
             return res;
@@ -58,66 +58,66 @@ namespace StealthModule
         /// <summary>
         /// Returns a delegate for a function inside the DLL.
         /// </summary>
-        /// <param name="funcName">The Name of the function to be searched.</param>
+        /// <param name="functionName">The Name of the function to be searched.</param>
         /// <param name="delegateType">The type of the delegate to be returned.</param>
         /// <returns>A delegate instance that can be cast to the appropriate delegate type.</returns>
-        public Delegate GetDelegateFromFuncName(string funcName, Type delegateType)
+        public Delegate GetExport(string functionName, Type delegateType)
         {
             if (delegateType == null)
                 throw new ArgumentNullException("delegateType");
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
-            var res = Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), delegateType);
+            var res = Marshal.GetDelegateForFunctionPointer(GetExportAddress(functionName), delegateType);
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
             return res;
         }
 
-        public Pointer GetPtrFromFuncName(string funcName)
+        public Pointer GetExportAddress(string functionName)
         {
             if (Disposed)
                 throw new ObjectDisposedException("DLLFromMemory");
-            if (string.IsNullOrEmpty(funcName))
-                throw new ArgumentException("funcName");
+            if (string.IsNullOrEmpty(functionName))
+                throw new ArgumentException("functionName");
             if (!IsDll)
                 throw new InvalidOperationException("Loaded Module is not a DLL");
             if (!isInitialized)
                 throw new InvalidOperationException("Dll is not initialized");
 
-            var pDirectory = ntHeadersAddress + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable));
-            var Directory = pDirectory.Read<ImageDataDirectory>();
-            if (Directory.Size == 0)
+            var dataDirectoryAddress = ntHeadersAddress + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable));
+            var dataDirectory = dataDirectoryAddress.Read<ImageDataDirectory>();
+            if (dataDirectory.Size == 0)
                 throw new ModuleException("Dll has no export table");
 
-            var pExports = moduleBaseAddress + Directory.VirtualAddress;
-            var Exports = pExports.Read<ImageExportDirectory>();
-            if (Exports.NumberOfFunctions == 0 || Exports.NumberOfNames == 0)
+            var exportDirectoryAddress = moduleBaseAddress + dataDirectory.VirtualAddress;
+            var exportDirectory = exportDirectoryAddress.Read<ImageExportDirectory>();
+            if (exportDirectory.NumberOfFunctions == 0 || exportDirectory.NumberOfNames == 0)
                 throw new ModuleException("Dll exports no functions");
 
-            var pNameRef = moduleBaseAddress + Exports.AddressOfNames;
-            var pOrdinal = moduleBaseAddress + Exports.AddressOfNameOrdinals;
-            for (var i = 0; i < Exports.NumberOfNames; i++, pNameRef += sizeof(uint), pOrdinal += sizeof(ushort))
+            var nameAddress = moduleBaseAddress + exportDirectory.AddressOfNames;
+            var ordinalAddress = moduleBaseAddress + exportDirectory.AddressOfNameOrdinals;
+            for (var i = 0; i < exportDirectory.NumberOfNames; i++, nameAddress += sizeof(uint), ordinalAddress += sizeof(ushort))
             {
-                var NameRef = pNameRef.Read<uint>();
-                var Ordinal = pOrdinal.Read<ushort>();
-                var curFuncName = Marshal.PtrToStringAnsi(moduleBaseAddress + NameRef);
-                if (curFuncName == funcName)
+                var exportNameAddress = nameAddress.Read<uint>();
+                var exportOrdinal = ordinalAddress.Read<ushort>();
+                var exportName = Marshal.PtrToStringAnsi(moduleBaseAddress + exportNameAddress);
+                if (exportName == functionName)
                 {
-                    if (Ordinal > Exports.NumberOfFunctions)
+                    if (exportOrdinal > exportDirectory.NumberOfFunctions)
                         throw new ModuleException("Invalid function ordinal");
-                    var pAddressOfFunction = moduleBaseAddress + Exports.AddressOfFunctions + (uint)(Ordinal * 4);
-                    return moduleBaseAddress + pAddressOfFunction.Read<uint>();
+                    var exportAddress = moduleBaseAddress + exportDirectory.AddressOfFunctions + (uint)(exportOrdinal * 4);
+                    return moduleBaseAddress + exportAddress.Read<uint>();
                 }
             }
 
-            throw new ModuleException("Dll exports no function named " + funcName);
+            throw new ModuleException("Dll exports no function named " + functionName);
         }
 
         /// <summary>
         /// Call entry point of executable.
         /// </summary>
         /// <returns>Exitcode of executable</returns>
-        public int MemoryCallEntryPoint()
+        public int CallEntryPoint()
         {
             if (Disposed)
                 throw new ObjectDisposedException("DLLFromMemory");
