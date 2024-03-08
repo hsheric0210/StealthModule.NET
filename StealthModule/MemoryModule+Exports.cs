@@ -47,7 +47,7 @@ namespace StealthModule
                 throw new ArgumentException("functionName");
             if (!IsDll)
                 throw new InvalidOperationException("Loaded Module is not a DLL");
-            if (!isInitialized)
+            if (!wasDllMainSuccessful)
                 throw new InvalidOperationException("Dll is not initialized");
 
             var dataDirectoryAddress = ntHeadersAddress + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable));

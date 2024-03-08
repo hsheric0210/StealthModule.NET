@@ -11,7 +11,7 @@ namespace StealthModule
         Pointer moduleBaseAddress = Pointer.Zero;
         Pointer ntHeadersAddress = Pointer.Zero;
         Pointer[] importModuleBaseAddresses;
-        bool isInitialized = false;
+        bool wasDllMainSuccessful = false;
         DllEntryDelegate dllEntryPoint = null;
         ExeEntryDelegate exeEntryPoint = null;
         bool isRelocated = false;
@@ -68,11 +68,11 @@ namespace StealthModule
 
         public void Dispose()
         {
-            if (isInitialized)
+            if (wasDllMainSuccessful)
             {
                 if (dllEntryPoint != null)
                     dllEntryPoint.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
-                isInitialized = false;
+                wasDllMainSuccessful = false;
             }
 
             if (importModuleBaseAddresses != null)
