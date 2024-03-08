@@ -78,9 +78,16 @@ namespace StealthModule
 
         public struct ExportEntry
         {
-            public string FunctionName;
-            public int FunctionOrdinal;
-            public Pointer FunctionAddress;
+            public string FunctionName { get; }
+            public int FunctionOrdinal { get; }
+            public Pointer FunctionAddress { get; }
+
+            internal ExportEntry(string functionName, int functionOrdinal, Pointer functionAddress)
+            {
+                FunctionName = functionName;
+                FunctionOrdinal = functionOrdinal;
+                FunctionAddress = functionAddress;
+            }
         }
 
         /// <summary>
@@ -144,13 +151,7 @@ namespace StealthModule
                     var FunctionOrdinal = Marshal.ReadInt16(moduleBase + ordinalsRVA + i * 2) + ordinalBase;
                     var FunctionRVA = Marshal.ReadInt32(moduleBase + functionsRVA + 4 * (FunctionOrdinal - ordinalBase));
 
-                    var entry = new ExportEntry
-                    {
-                        FunctionName = FunctionName,
-                        FunctionOrdinal = FunctionOrdinal,
-                        FunctionAddress = moduleBase + FunctionRVA,
-                    };
-
+                    var entry = new ExportEntry(FunctionName, FunctionOrdinal, moduleBase + FunctionRVA);
                     if (callback(entry))
                         break; // if callback returns true, stop the iteration.
                 }
