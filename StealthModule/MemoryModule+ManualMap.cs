@@ -43,43 +43,10 @@ namespace StealthModule
                 throw new BadImageFormatException("Wrong section alignment");
 
             var desiredImageBase = Is64BitProcess ? ((Pointer)unchecked((long)ntHeadersData.OptionalHeader.ImageBaseLong)) : ((Pointer)unchecked((int)(ntHeadersData.OptionalHeader.ImageBaseLong >> 32)));
-
-            // reserve memory for image of library
-            moduleBaseAddress = NativeMethods.VirtualAlloc(desiredImageBase, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
-            //pCode = IntPtr.Zero; //test relocation with this
-
-            // try to allocate memory at arbitrary position
-            if (moduleBaseAddress == Pointer.Zero)
-                moduleBaseAddress = NativeMethods.VirtualAlloc(Pointer.Zero, ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
-
-            if (moduleBaseAddress == Pointer.Zero)
-                throw new ModuleException("Out of Memory");
-
-            if (Is64BitProcess && moduleBaseAddress.SpanBoundary(alignedImageSize, 32))
-            {
-                // Memory block may not span 4 GB (32 bit) boundaries.
-                var blockedMemory = new System.Collections.Generic.List<Pointer>();
-                while (moduleBaseAddress.SpanBoundary(alignedImageSize, 32))
-                {
-                    blockedMemory.Add(moduleBaseAddress);
-                    moduleBaseAddress = NativeMethods.VirtualAlloc(Pointer.Zero, alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
-                    if (moduleBaseAddress == Pointer.Zero)
-                        break;
-                }
-                foreach (var ptr in blockedMemory)
-                    NativeMethods.VirtualFree(ptr, Pointer.Zero, AllocationType.RELEASE);
-                if (moduleBaseAddress == Pointer.Zero)
-                    throw new ModuleException("Out of Memory");
-            }
+            moduleBaseAddress = AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
 
             // commit memory for headers
-            var headers = NativeMethods.VirtualAlloc(moduleBaseAddress, ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
-            if (headers == Pointer.Zero)
-                throw new ModuleException("Out of Memory");
-
-            // copy PE header to code
-            Marshal.Copy(data, 0, headers, (int)ntHeadersData.OptionalHeader.SizeOfHeaders);
-            ntHeadersAddress = headers + dosHeader.e_lfanew;
+            ntHeadersAddress = AllocateAndCopyNtHeaders(moduleBaseAddress, data, dosHeader, ntHeadersData);
 
             var locationDelta = moduleBaseAddress - desiredImageBase;
             if (locationDelta != Pointer.Zero)
