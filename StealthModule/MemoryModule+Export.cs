@@ -97,7 +97,7 @@ namespace StealthModule
             if (moduleBase.Read<ushort>() != 0x5A04) // prevent calling WalkEDT() after erasing the PE header
                 throw new ModuleException("Not a valid PE DOS header magic; Possibly your PE header is erased");
 
-            var pDirectory = ntHeaders + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ExportTable : Of32.IMAGE_OPTIONAL_HEADER_ExportTable);
+            var pDirectory = ntHeaders + NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable);
             var Directory = pDirectory.Read<IMAGE_DATA_DIRECTORY>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");

@@ -41,7 +41,7 @@
 
 namespace StealthModule
 {
-    internal class Magic
+    internal static class NativeMagics
     {
         internal const ushort IMAGE_DOS_SIGNATURE = 0x5A4D;
         internal const uint IMAGE_NT_SIGNATURE = 0x00004550;
@@ -54,26 +54,26 @@ namespace StealthModule
         internal const uint IMAGE_FILE_DLL = 0x2000;
     }
 
-    internal class Of
+    internal static class NativeOffsets
     {
         internal const int IMAGE_NT_HEADERS_OptionalHeader = 24;
         internal const int IMAGE_SECTION_HEADER_PhysicalAddress = 8;
         internal const int IMAGE_IMPORT_BY_NAME_Name = 2;
     }
 
-    internal static class Of32
+    internal static class NativeOffsets32
     {
         internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 28;
         internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 96;
     }
 
-    internal static class Of64
+    internal static class NativeOffsets64
     {
         internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 24;
         internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 112;
     }
 
-    internal static class Sz
+    internal static class NativeSizes
     {
         internal const int IMAGE_SECTION_HEADER = 40;
         internal const int IMAGE_BASE_RELOCATION = 8;

@@ -49,9 +49,9 @@ namespace StealthModule
         private static Pointer[] BuildIDT(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeaders)
         {
             var importModules = new System.Collections.Generic.List<Pointer>();
-            var entryCount = ntHeaders.OptionalHeader.ImportTable.Size / Sz.IMAGE_IMPORT_DESCRIPTOR;
+            var entryCount = ntHeaders.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
             var importDescriptorTableAddress = moduleBase + ntHeaders.OptionalHeader.ImportTable.VirtualAddress;
-            for (uint i = 0; i != entryCount; i++, importDescriptorTableAddress += Sz.IMAGE_IMPORT_DESCRIPTOR)
+            for (uint i = 0; i != entryCount; i++, importDescriptorTableAddress += NativeSizes.IMAGE_IMPORT_DESCRIPTOR)
             {
                 var importDescriptor = importDescriptorTableAddress.Read<IMAGE_IMPORT_DESCRIPTOR>();
                 if (importDescriptor.Name == 0)
@@ -89,7 +89,7 @@ namespace StealthModule
                     if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(ReadThunkRef))
                         WriteFuncRef = NativeMethods.GetProcAddress(importModule, NativeMethods.IMAGE_ORDINAL(ReadThunkRef));
                     else
-                        WriteFuncRef = NativeMethods.GetProcAddress(importModule, moduleBase + ReadThunkRef + Of.IMAGE_IMPORT_BY_NAME_Name);
+                        WriteFuncRef = NativeMethods.GetProcAddress(importModule, moduleBase + ReadThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name);
 
                     if (WriteFuncRef == Pointer.Zero)
                         throw new ModuleException("Can't get address for imported function");

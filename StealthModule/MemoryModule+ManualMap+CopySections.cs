@@ -48,7 +48,7 @@ namespace StealthModule
         private static void CopySections(Pointer moduleBase, ref IMAGE_NT_HEADERS ntHeadersData, Pointer ntHeadersAddress, byte[] data)
         {
             var sectionBase = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
-            for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionBase += Sz.IMAGE_SECTION_HEADER)
+            for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionBase += NativeSizes.IMAGE_SECTION_HEADER)
             {
                 var sectionHeader = sectionBase.Read<IMAGE_SECTION_HEADER>();
                 if (sectionHeader.SizeOfRawData == 0)
@@ -65,7 +65,7 @@ namespace StealthModule
                         dest = moduleBase + sectionHeader.VirtualAddress;
 
                         // NOTE: On 64bit systems we truncate to 32bit here but expand again later when "PhysicalAddress" is used.
-                        (sectionBase + Of.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
+                        (sectionBase + NativeOffsets.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
 
                         //NativeMethods.MemSet(dest, 0, (UIntPtr)size);
                         for (var j = 0; j < align; j++)
@@ -84,7 +84,7 @@ namespace StealthModule
                     Marshal.Copy(data, checked((int)sectionHeader.PointerToRawData), dest, checked((int)sectionHeader.SizeOfRawData));
 
                     // NOTE: On 64bit systems we truncate to 32bit here but expand again later when "PhysicalAddress" is used.
-                    (sectionBase + Of.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
+                    (sectionBase + NativeOffsets.IMAGE_SECTION_HEADER_PhysicalAddress).Write(unchecked((uint)(ulong)(long)dest));
                 }
             }
         }

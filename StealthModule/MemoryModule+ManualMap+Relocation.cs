@@ -57,8 +57,8 @@ namespace StealthModule
                     break;
 
                 var relocationBaseAddress = moduleBase + relocationTable.VirtualAdress;
-                var relocationInfoAddress = relocationTableAddress + Sz.IMAGE_BASE_RELOCATION;
-                var relocationCount = (relocationTable.SizeOfBlock - Sz.IMAGE_BASE_RELOCATION) / 2;
+                var relocationInfoAddress = relocationTableAddress + NativeSizes.IMAGE_BASE_RELOCATION;
+                var relocationCount = (relocationTable.SizeOfBlock - NativeSizes.IMAGE_BASE_RELOCATION) / 2;
                 for (uint i = 0; i != relocationCount; i++, relocationInfoAddress += sizeof(ushort))
                 {
                     var relocationInfos = (ushort)Marshal.PtrToStructure(relocationInfoAddress, typeof(ushort));

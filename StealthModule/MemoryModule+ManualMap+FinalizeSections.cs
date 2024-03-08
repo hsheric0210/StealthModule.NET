@@ -86,10 +86,10 @@ namespace StealthModule
                 Last = false,
             };
 
-            sectionHeaderAddress += Sz.IMAGE_SECTION_HEADER;
+            sectionHeaderAddress += NativeSizes.IMAGE_SECTION_HEADER;
 
             // loop through all sections and change access flags
-            for (var i = 1; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionHeaderAddress += Sz.IMAGE_SECTION_HEADER)
+            for (var i = 1; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionHeaderAddress += NativeSizes.IMAGE_SECTION_HEADER)
             {
                 sectionHeader = sectionHeaderAddress.Read<IMAGE_SECTION_HEADER>();
                 var alignedAddress = sectionAddress.AlignDown((UIntPtr)pageSize);
@@ -104,8 +104,8 @@ namespace StealthModule
                 {
                     // Section shares page with previous
 
-                    if ((sectionHeader.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) == 0)
-                        sectionData.Characteristics = (sectionData.Characteristics | sectionHeader.Characteristics) & ~Magic.IMAGE_SCN_MEM_DISCARDABLE;
+                    if ((sectionHeader.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0 || (sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) == 0)
+                        sectionData.Characteristics = (sectionData.Characteristics | sectionHeader.Characteristics) & ~NativeMagics.IMAGE_SCN_MEM_DISCARDABLE;
                     else
                         sectionData.Characteristics |= sectionHeader.Characteristics;
 
@@ -130,7 +130,7 @@ namespace StealthModule
             if (sectionData.Size == Pointer.Zero)
                 return;
 
-            if ((sectionData.Characteristics & Magic.IMAGE_SCN_MEM_DISCARDABLE) > 0)
+            if ((sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_DISCARDABLE) > 0)
             {
                 // section is not needed any more and can safely be freed
                 if (sectionData.Address == sectionData.AlignedAddress && (sectionData.Last || sectionAlignment == pageSize || (ulong)sectionData.Size % pageSize == 0))
@@ -146,7 +146,7 @@ namespace StealthModule
             var writeable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_WRITE) != 0 ? 1 : 0;
             var executable = (sectionData.Characteristics & (uint)ImageSectionFlags.IMAGE_SCN_MEM_EXECUTE) != 0 ? 1 : 0;
             var protect = ProtectionFlags[executable, readable, writeable];
-            if ((sectionData.Characteristics & Magic.IMAGE_SCN_MEM_NOT_CACHED) > 0)
+            if ((sectionData.Characteristics & NativeMagics.IMAGE_SCN_MEM_NOT_CACHED) > 0)
                 protect |= MemoryProtection.NOCACHE;
 
             // change memory access flags
@@ -159,9 +159,9 @@ namespace StealthModule
             var size = sectionHeader.SizeOfRawData;
             if (size == 0)
             {
-                if ((sectionHeader.Characteristics & Magic.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
+                if ((sectionHeader.Characteristics & NativeMagics.IMAGE_SCN_CNT_INITIALIZED_DATA) > 0)
                     size = ntHeaders.OptionalHeader.SizeOfInitializedData;
-                else if ((sectionHeader.Characteristics & Magic.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
+                else if ((sectionHeader.Characteristics & NativeMagics.IMAGE_SCN_CNT_UNINITIALIZED_DATA) > 0)
                     size = ntHeaders.OptionalHeader.SizeOfUninitializedData;
             }
             return IntPtr.Size == 8 ? (IntPtr)unchecked((long)size) : (IntPtr)unchecked((int)size);

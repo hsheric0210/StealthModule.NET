@@ -6,10 +6,10 @@ namespace StealthModule
     {
 
         // Equivalent to the IMAGE_FIRST_SECTION macro
-        internal static Pointer IMAGE_FIRST_SECTION(Pointer pNTHeader, ushort ntheader_FileHeader_SizeOfOptionalHeader) => pNTHeader + Of.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader;
+        internal static Pointer IMAGE_FIRST_SECTION(Pointer pNTHeader, ushort ntheader_FileHeader_SizeOfOptionalHeader) => pNTHeader + NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader;
 
         // Equivalent to the IMAGE_FIRST_SECTION macro
-        internal static int IMAGE_FIRST_SECTION(int lfanew, ushort ntheader_FileHeader_SizeOfOptionalHeader) => lfanew + Of.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader;
+        internal static int IMAGE_FIRST_SECTION(int lfanew, ushort ntheader_FileHeader_SizeOfOptionalHeader) => lfanew + NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + ntheader_FileHeader_SizeOfOptionalHeader;
 
         // Equivalent to the IMAGE_ORDINAL32/64 macros
         internal static Pointer IMAGE_ORDINAL(Pointer ordinal) => (Pointer)(uint)((ulong)ordinal & 0xffff);

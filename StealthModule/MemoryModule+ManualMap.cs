@@ -51,14 +51,14 @@ namespace StealthModule
             if (data.Length < Marshal.SizeOf(typeof(IMAGE_DOS_HEADER)))
                 throw new BadImageFormatException("DOS header too small");
             var dosHeader = Structs.ReadOffset<IMAGE_DOS_HEADER>(data, 0);
-            if (dosHeader.e_magic != Magic.IMAGE_DOS_SIGNATURE)
+            if (dosHeader.e_magic != NativeMagics.IMAGE_DOS_SIGNATURE)
                 throw new BadImageFormatException("Invalid DOS header magic");
 
             if (data.Length < dosHeader.e_lfanew + Marshal.SizeOf(typeof(IMAGE_NT_HEADERS)))
                 throw new BadImageFormatException("NT header too small");
             var originalNtHeaders = Structs.ReadOffset<IMAGE_NT_HEADERS>(data, dosHeader.e_lfanew);
 
-            if (originalNtHeaders.Signature != Magic.IMAGE_NT_SIGNATURE)
+            if (originalNtHeaders.Signature != NativeMagics.IMAGE_NT_SIGNATURE)
                 throw new BadImageFormatException("Invalid NT header signature");
             if (originalNtHeaders.FileHeader.Machine != GetMachineType())
                 throw new BadImageFormatException("Machine type doesn't fit (i386 vs. AMD64)");
@@ -70,7 +70,7 @@ namespace StealthModule
             NativeMethods.GetNativeSystemInfo(out var systemInfo);
             uint lastSectionEnd = 0;
             var ofSection = NativeMethods.IMAGE_FIRST_SECTION(dosHeader.e_lfanew, originalNtHeaders.FileHeader.SizeOfOptionalHeader);
-            for (var i = 0; i != originalNtHeaders.FileHeader.NumberOfSections; i++, ofSection += Sz.IMAGE_SECTION_HEADER)
+            for (var i = 0; i != originalNtHeaders.FileHeader.NumberOfSections; i++, ofSection += NativeSizes.IMAGE_SECTION_HEADER)
             {
                 var section = Structs.ReadOffset<IMAGE_SECTION_HEADER>(data, ofSection);
                 var endOfSection = section.VirtualAddress + (section.SizeOfRawData > 0 ? section.SizeOfRawData : originalNtHeaders.OptionalHeader.SectionAlignment);
@@ -93,7 +93,7 @@ namespace StealthModule
             if (addressDelta != Pointer.Zero)
             {
                 // update relocated position
-                var pImageBase = ntHeaders + Of.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? Of64.IMAGE_OPTIONAL_HEADER_ImageBase : Of32.IMAGE_OPTIONAL_HEADER_ImageBase);
+                var pImageBase = ntHeaders + NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ImageBase : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ImageBase);
                 pImageBase.Write(moduleBase);
             }
 
@@ -113,7 +113,7 @@ namespace StealthModule
             ExecuteTLS(moduleBase, ref originalNtHeaders);
 
             // get entry point of loaded library
-            IsDll = (originalNtHeaders.FileHeader.Characteristics & Magic.IMAGE_FILE_DLL) != 0;
+            IsDll = (originalNtHeaders.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
             if (originalNtHeaders.OptionalHeader.AddressOfEntryPoint != 0)
             {
                 if (IsDll)
@@ -134,7 +134,7 @@ namespace StealthModule
             }
         }
 
-        private static uint GetMachineType() => Is64BitProcess ? Magic.IMAGE_FILE_MACHINE_AMD64 : Magic.IMAGE_FILE_MACHINE_I386;
+        private static uint GetMachineType() => Is64BitProcess ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;
 
         private static uint AlignValueUp(uint value, uint alignment) => (value + alignment - 1) & ~(alignment - 1);
     }
