@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 
 namespace StealthModule
 {
@@ -148,7 +149,7 @@ namespace StealthModule
                 var optionalHeader = moduleBase + ntHeaders + 0x18;
                 var optionalHeaderMagic = Marshal.ReadInt16(optionalHeader);
 
-                Pointer edtAddress = optionalHeader + optionalHeaderMagic == 0x010b ? 0x60 : 0x70; // 0x010B = NT64
+                var edtAddress = optionalHeader + (optionalHeaderMagic == 0x010b ? 0x60 : 0x70); // 0x010B = NT64
 
                 // Read -> IMAGE_EXPORT_DIRECTORY
                 var edtRVA = Marshal.ReadInt32(edtAddress);
@@ -170,10 +171,10 @@ namespace StealthModule
                         break; // if callback returns true, stop the iteration.
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // Catch parser failure
-                throw new ModuleException("Failed to parse module exports.");
+                throw new ModuleException("Failed to parse module exports.", ex);
             }
         }
     }
