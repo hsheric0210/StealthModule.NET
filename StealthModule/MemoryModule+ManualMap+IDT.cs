@@ -7,12 +7,12 @@ namespace StealthModule
     {
         static Pointer[] BuildImportTable(ref ImageNtHeaders OrgNTHeaders, Pointer pCode)
         {
-            System.Collections.Generic.List<Pointer> ImportModules = new System.Collections.Generic.List<Pointer>();
-            uint NumEntries = OrgNTHeaders.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
+            var ImportModules = new System.Collections.Generic.List<Pointer>();
+            var NumEntries = OrgNTHeaders.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
             var pImportDesc = pCode + OrgNTHeaders.OptionalHeader.ImportTable.VirtualAddress;
             for (uint i = 0; i != NumEntries; i++, pImportDesc += NativeSizes.IMAGE_IMPORT_DESCRIPTOR)
             {
-                ImageImportDescriptor ImportDesc = pImportDesc.Read<ImageImportDescriptor>();
+                var ImportDesc = pImportDesc.Read<ImageImportDescriptor>();
                 if (ImportDesc.Name == 0)
                     break;
 
@@ -38,7 +38,7 @@ namespace StealthModule
                     pThunkRef = pCode + ImportDesc.FirstThunk;
                     pFuncRef = pCode + ImportDesc.FirstThunk;
                 }
-                for (int SzRef = IntPtr.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
+                for (var SzRef = IntPtr.Size; ; pThunkRef += SzRef, pFuncRef += SzRef)
                 {
                     IntPtr ReadThunkRef = pThunkRef.Read<IntPtr>(), WriteFuncRef;
                     if (ReadThunkRef == IntPtr.Zero)
@@ -49,14 +49,14 @@ namespace StealthModule
                     }
                     else
                     {
-                        WriteFuncRef = NativeMethods.GetProcAddress(handle, (pCode + ReadThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name));
+                        WriteFuncRef = NativeMethods.GetProcAddress(handle, pCode + ReadThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name);
                     }
                     if (WriteFuncRef == IntPtr.Zero)
                         throw new ModuleException("Can't get adress for imported function");
                     pFuncRef.Write(WriteFuncRef);
                 }
             }
-            return (ImportModules.Count > 0 ? ImportModules.ToArray() : null);
+            return ImportModules.Count > 0 ? ImportModules.ToArray() : null;
         }
 
     }

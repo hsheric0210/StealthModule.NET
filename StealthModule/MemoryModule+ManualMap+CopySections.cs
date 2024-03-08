@@ -8,13 +8,13 @@ namespace StealthModule
         static void CopySections(ref ImageNtHeaders OrgNTHeaders, Pointer pCode, Pointer pNTHeaders, byte[] data)
         {
             var pSection = NativeMethods.IMAGE_FIRST_SECTION(pNTHeaders, OrgNTHeaders.FileHeader.SizeOfOptionalHeader);
-            for (int i = 0; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, pSection += NativeSizes.IMAGE_SECTION_HEADER)
+            for (var i = 0; i < OrgNTHeaders.FileHeader.NumberOfSections; i++, pSection += NativeSizes.IMAGE_SECTION_HEADER)
             {
-                ImageSectionHeader Section = pSection.Read<ImageSectionHeader>();
+                var Section = pSection.Read<ImageSectionHeader>();
                 if (Section.SizeOfRawData == 0)
                 {
                     // section doesn't contain data in the dll itself, but may define uninitialized data
-                    uint size = OrgNTHeaders.OptionalHeader.SectionAlignment;
+                    var size = OrgNTHeaders.OptionalHeader.SectionAlignment;
                     if (size > 0)
                     {
                         IntPtr dest = NativeMethods.VirtualAlloc(pCode + Section.VirtualAddress, (UIntPtr)size, AllocationType.COMMIT, MemoryProtection.READWRITE);

@@ -52,7 +52,7 @@ namespace StealthModule
         {
             if (!typeof(Delegate).IsAssignableFrom(typeof(TDelegate)))
                 throw new ArgumentException(typeof(TDelegate).Name + " is not a delegate");
-            TDelegate res = Marshal.GetDelegateForFunctionPointer((IntPtr)GetPtrFromFuncName(funcName), typeof(TDelegate)) as TDelegate;
+            var res = Marshal.GetDelegateForFunctionPointer((IntPtr)GetPtrFromFuncName(funcName), typeof(TDelegate)) as TDelegate;
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
             return res;
@@ -70,7 +70,7 @@ namespace StealthModule
                 throw new ArgumentNullException("delegateType");
             if (!typeof(Delegate).IsAssignableFrom(delegateType))
                 throw new ArgumentException(delegateType.Name + " is not a delegate");
-            Delegate res = Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), delegateType);
+            var res = Marshal.GetDelegateForFunctionPointer(GetPtrFromFuncName(funcName), delegateType);
             if (res == null)
                 throw new ModuleException("Unable to get managed delegate");
             return res;
@@ -88,22 +88,22 @@ namespace StealthModule
                 throw new InvalidOperationException("Dll is not initialized");
 
             var pDirectory = pNTHeaders + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ExportTable : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ExportTable));
-            ImageDataDirectory Directory = pDirectory.Read<ImageDataDirectory>();
+            var Directory = pDirectory.Read<ImageDataDirectory>();
             if (Directory.Size == 0)
                 throw new ModuleException("Dll has no export table");
 
             var pExports = pCode + Directory.VirtualAddress;
-            ImageExportDirectory Exports = pExports.Read<ImageExportDirectory>();
+            var Exports = pExports.Read<ImageExportDirectory>();
             if (Exports.NumberOfFunctions == 0 || Exports.NumberOfNames == 0)
                 throw new ModuleException("Dll exports no functions");
 
             var pNameRef = pCode + Exports.AddressOfNames;
             var pOrdinal = pCode + Exports.AddressOfNameOrdinals;
-            for (int i = 0; i < Exports.NumberOfNames; i++, pNameRef += sizeof(uint), pOrdinal += sizeof(ushort))
+            for (var i = 0; i < Exports.NumberOfNames; i++, pNameRef += sizeof(uint), pOrdinal += sizeof(ushort))
             {
-                uint NameRef = pNameRef.Read<uint>();
-                ushort Ordinal = pOrdinal.Read<ushort>();
-                string curFuncName = Marshal.PtrToStringAnsi(pCode + NameRef);
+                var NameRef = pNameRef.Read<uint>();
+                var Ordinal = pOrdinal.Read<ushort>();
+                var curFuncName = Marshal.PtrToStringAnsi(pCode + NameRef);
                 if (curFuncName == funcName)
                 {
                     if (Ordinal > Exports.NumberOfFunctions)

@@ -9,13 +9,13 @@ namespace StealthModule
         {
             if (OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress == 0)
                 return;
-            ImageTlsDirectory tlsDir = (pCode + OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<ImageTlsDirectory>();
+            var tlsDir = (pCode + OrgNTHeaders.OptionalHeader.TLSTable.VirtualAddress).Read<ImageTlsDirectory>();
             Pointer pCallBack = tlsDir.AddressOfCallBacks;
             if (pCallBack != Pointer.Zero)
             {
                 for (IntPtr Callback; (Callback = pCallBack.ReadPointer()) != IntPtr.Zero; pCallBack += IntPtr.Size)
                 {
-                    ImageTlsDelegate tls = (ImageTlsDelegate)Marshal.GetDelegateForFunctionPointer(Callback, typeof(ImageTlsDelegate));
+                    var tls = (ImageTlsDelegate)Marshal.GetDelegateForFunctionPointer(Callback, typeof(ImageTlsDelegate));
                     tls(pCode, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
                 }
             }
