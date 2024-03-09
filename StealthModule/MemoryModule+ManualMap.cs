@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Runtime.ExceptionServices;
 
 namespace StealthModule
 {
     public partial class MemoryModule
     {
-        [HandleProcessCorruptedStateExceptions]
         private void ManualMap(byte[] data, Pointer stompTargetAddress)
         {
             if (data.Length < Marshal.SizeOf(typeof(ImageDosHeader)))
