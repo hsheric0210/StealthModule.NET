@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 
 namespace StealthModule
 {
@@ -39,12 +38,8 @@ namespace StealthModule
             if (decoySize < data.Length)
                 throw new ArgumentException("Decoy module is too small to host the payload.");
 
-            Console.WriteLine($"STOMP: decoy {DecoyModulePath} size {decoySize}");
-
             decoyModule = new FileModule(DecoyModulePath);
             var decoyInfo = new PEHeader(decoyModule.BaseAddress);
-
-            Console.WriteLine($"STOMP: decoy alloc @ {decoyModule.BaseAddress}");
 
             IntPtr decoyBase = decoyModule.BaseAddress;
             var decoyPeSize = (IntPtr)decoyInfo.OptHeader.SizeOfImage;

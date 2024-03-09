@@ -55,7 +55,7 @@ namespace RunDll32
             var dllBytes = File.ReadAllBytes(dllName);
             Console.WriteLine("[+] Read " + dllBytes.Length + " bytes from the disk. Begin manual mapping...");
 
-            var module = new ModuleStomping(dllBytes);
+            var module = new MemoryModule(dllBytes);
 
             var entryPoint = entryPointName[0] == '#' ? module.Exports[int.Parse(entryPointName.Substring(1))] : module.Exports[entryPointName];
             if (entryPoint == Pointer.Zero)

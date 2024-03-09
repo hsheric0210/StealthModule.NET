@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
-using static StealthModule.NativeMethods.Delegates;
 
 namespace StealthModule
 {
@@ -40,12 +38,11 @@ namespace StealthModule
             return memory;
         }
 
-        private static Pointer ConditionalVirtualAlloc(Pointer desiredAddress, Pointer size, AllocationType allocationType, MemoryProtection memoryProtection, bool noAllocation)
+        private static Pointer ConditionalVirtualAlloc(Pointer desiredAddress, Pointer size, AllocationType allocationType, MemoryProtection memoryProtection, bool stomping)
         {
-            if (noAllocation)
-                return desiredAddress;
+            if (stomping)
+                return desiredAddress; // The memory is already allocated when performing Module Stomping
 
-            //return NativeMethods.VirtualAlloc(desiredAddress, size, allocationType, memoryProtection);
             IntPtr address = desiredAddress;
             IntPtr size2 = size;
             var status = NativeMethods.NtAllocateVirtualMemory(NativeMethods.GetCurrentProcess(), ref address, IntPtr.Zero, ref size2, allocationType, memoryProtection);

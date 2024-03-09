@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.ExceptionServices;
-using System.Threading;
 
 namespace StealthModule
 {
     public partial class MemoryModule
     {
         [HandleProcessCorruptedStateExceptions]
-        private void ManualMap(byte[] data, Pointer desiredAddress)
+        private void ManualMap(byte[] data, Pointer stompTargetAddress)
         {
             if (data.Length < Marshal.SizeOf(typeof(ImageDosHeader)))
                 throw new BadImageFormatException("DOS header too small");
@@ -27,6 +26,8 @@ namespace StealthModule
             if ((ntHeadersData.OptionalHeader.SectionAlignment & 1) > 0)
                 throw new BadImageFormatException("Wrong section alignment"); //Only support multiple of 2
 
+            IsDll = (ntHeadersData.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
+
             NativeMethods.GetNativeSystemInfo(out var systemInfo);
             uint lastSectionEnd = 0;
             var sectionOffset = NativeMethods.IMAGE_FIRST_SECTION(dosHeader.e_lfanew, ntHeadersData.FileHeader.SizeOfOptionalHeader);
@@ -44,21 +45,17 @@ namespace StealthModule
                 throw new BadImageFormatException("Wrong section alignment");
 
             var desiredImageBase = Is64BitProcess ? ((Pointer)unchecked((long)ntHeadersData.OptionalHeader.ImageBaseLong)) : ((Pointer)unchecked((int)(ntHeadersData.OptionalHeader.ImageBaseLong >> 32)));
-            var noAllocation = desiredAddress != Pointer.Zero;
-            BaseAddress = noAllocation ? desiredAddress : AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
-
-            Console.WriteLine("Alloc done @ " + BaseAddress);
+            var stomping = stompTargetAddress != Pointer.Zero;
+            BaseAddress = stomping ? stompTargetAddress : AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
 
             // commit memory for headers
-            var headers = ConditionalVirtualAlloc(BaseAddress, (Pointer)ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE, noAllocation);
+            var headers = ConditionalVirtualAlloc(BaseAddress, (Pointer)ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE, stomping);
             if (headers == Pointer.Zero)
                 throw new ModuleException("Out of Memory");
 
             // copy PE header to code
             Marshal.Copy(data, 0, headers, (int)ntHeadersData.OptionalHeader.SizeOfHeaders);
             ntHeadersAddress = headers + dosHeader.e_lfanew;
-
-            Console.WriteLine("header copy done.");
 
             var locationDelta = BaseAddress - desiredImageBase;
             if (locationDelta != Pointer.Zero)
@@ -68,44 +65,26 @@ namespace StealthModule
                 imageBaseAddress.Write((IntPtr)BaseAddress);
             }
 
-            Console.WriteLine("baseaddr write done.");
-
             // copy sections from DLL file block to new memory location
-            CopySections(ref ntHeadersData, BaseAddress, ntHeadersAddress, data, noAllocation);
-
-            Console.WriteLine("copy sections done.");
+            CopySections(ref ntHeadersData, BaseAddress, ntHeadersAddress, data, stomping);
 
             // adjust base address of imported data
             isRelocated = locationDelta == Pointer.Zero || PerformBaseRelocation(ref ntHeadersData, BaseAddress, locationDelta);
 
-            Console.WriteLine("relocation done.");
-
             // load required dlls and adjust function table of imports
             importModuleBaseAddresses = BuildImportTable(ref ntHeadersData, BaseAddress);
-
-            Console.WriteLine("IAT rebuild done.");
 
             // mark memory pages depending on section headers and release
             // sections that are marked as "discardable"
             FinalizeSections(ref ntHeadersData, BaseAddress, ntHeadersAddress, systemInfo.dwPageSize);
 
-            Console.WriteLine("section protect done.");
+            if (stomping) // When stomping, calling the module is mostly end up causing SEGFAULTs.
+                return;
 
-            try
-            {
-                // TLS callbacks are executed BEFORE the main loading
-                ExecuteTLS(ref ntHeadersData, BaseAddress);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            Thread.Sleep(30000);
-
-            Console.WriteLine("tls done.");
+            // TLS callbacks are executed BEFORE the main loading
+            ExecuteTLS(ref ntHeadersData, BaseAddress);
 
             // get entry point of loaded library
-            IsDll = (ntHeadersData.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
             if (ntHeadersData.OptionalHeader.AddressOfEntryPoint != 0)
             {
                 if (IsDll)
@@ -123,8 +102,6 @@ namespace StealthModule
                     exeEntryPoint = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
                 }
             }
-
-            Console.WriteLine("dllmain call done.");
         }
 
         private static uint GetMachineType() => Is64BitProcess ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;
