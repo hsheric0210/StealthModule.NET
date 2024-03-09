@@ -79,7 +79,6 @@ namespace StealthModule
                     // notify library about attaching to process
                     var dllEntryPtr = moduleBaseAddress + ntHeadersData.OptionalHeader.AddressOfEntryPoint;
                     dllEntryPoint = (DllEntryDelegate)Marshal.GetDelegateForFunctionPointer(dllEntryPtr, typeof(DllEntryDelegate));
-
                     wasDllMainSuccessful = dllEntryPoint != null && dllEntryPoint(moduleBaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
                     if (!wasDllMainSuccessful)
                         throw new ModuleException("Can't attach DLL to process");
