@@ -30,12 +30,12 @@
                             break;
                         case BasedRelocationType.IMAGE_REL_BASED_HIGHLOW:
                             // change complete 32 bit address
-                            var patchAddrHL = relocationInfoAddress.Read<int>();
+                            var patchAddrHL = patchAddress.Read<int>();
                             patchAddrHL += (int)delta;
                             patchAddress.Write(patchAddrHL);
                             break;
                         case BasedRelocationType.IMAGE_REL_BASED_DIR64:
-                            var patchAddr64 = relocationInfoAddress.Read<long>();
+                            var patchAddr64 = patchAddress.Read<long>();
                             patchAddr64 += (long)delta;
                             patchAddress.Write(patchAddr64);
                             break;
