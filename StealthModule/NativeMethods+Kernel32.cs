@@ -12,7 +12,7 @@ namespace StealthModule
         private delegate void DGetNativeSystemInfo(out SystemInfo lpSystemInfo);
         private delegate IntPtr DGetProcAddress(IntPtr hModule, IntPtr procName);
 
-        static bool nativeInitialized;
+        static bool kernel32Initialized;
         private static DLoadLibrary loadLibrary;
         private static DFreeLibrary freeLibrary;
         private static DVirtualAlloc virtualAlloc;
@@ -24,7 +24,7 @@ namespace StealthModule
         internal static Pointer LoadLibrary(Pointer lpFileName)
         {
             if (loadLibrary == null)
-                InitNatives();
+                InitKernel32();
 
             return loadLibrary(lpFileName);
         }
@@ -32,7 +32,7 @@ namespace StealthModule
         internal static bool FreeLibrary(Pointer hModule)
         {
             if (freeLibrary == null)
-                InitNatives();
+                InitKernel32();
 
             return freeLibrary(hModule);
         }
@@ -40,7 +40,7 @@ namespace StealthModule
         internal static Pointer VirtualAlloc(Pointer lpAddress, Pointer dwSize, AllocationType flAllocationType, MemoryProtection flProtect)
         {
             if (virtualAlloc == null)
-                InitNatives();
+                InitKernel32();
 
             return virtualAlloc(lpAddress, dwSize, flAllocationType, flProtect);
         }
@@ -48,7 +48,7 @@ namespace StealthModule
         internal static bool VirtualFree(Pointer lpAddress, Pointer dwSize, AllocationType dwFreeType)
         {
             if (virtualFree == null)
-                InitNatives();
+                InitKernel32();
 
             return virtualFree(lpAddress, dwSize, dwFreeType);
         }
@@ -56,7 +56,7 @@ namespace StealthModule
         internal static bool VirtualProtect(Pointer lpAddress, Pointer dwSize, MemoryProtection flNewProtect, out MemoryProtection lpflOldProtect)
         {
             if (virtualProtect == null)
-                InitNatives();
+                InitKernel32();
 
             return virtualProtect(lpAddress, dwSize, flNewProtect, out lpflOldProtect);
         }
@@ -64,7 +64,7 @@ namespace StealthModule
         internal static void GetNativeSystemInfo(out SystemInfo lpSystemInfo)
         {
             if (getNativeSystemInfo == null)
-                InitNatives();
+                InitKernel32();
 
             getNativeSystemInfo(out lpSystemInfo);
         }
@@ -72,14 +72,14 @@ namespace StealthModule
         internal static Pointer GetProcAddress(Pointer hModule, Pointer procName)
         {
             if (getProcAddress == null)
-                InitNatives();
+                InitKernel32();
 
             return getProcAddress(hModule, procName);
         }
 
-        internal static void InitNatives()
+        internal static void InitKernel32()
         {
-            if (nativeInitialized)
+            if (kernel32Initialized)
                 return;
 
             var kernel32 = new ExportResolver("kernel32.dll");
@@ -91,7 +91,7 @@ namespace StealthModule
             virtualProtect = (DVirtualProtect)kernel32.GetExport("VirtualProtect", typeof(DVirtualProtect));
             getNativeSystemInfo = (DGetNativeSystemInfo)kernel32.GetExport("GetNativeSystemInfo", typeof(DGetNativeSystemInfo));
             getProcAddress = (DGetProcAddress)kernel32.GetExport("GetProcAddress", typeof(DGetProcAddress));
-            nativeInitialized = true;
+            kernel32Initialized = true;
         }
     }
 }
