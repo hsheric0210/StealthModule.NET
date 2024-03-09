@@ -8,10 +8,19 @@ namespace StealthModule.MemoryModuleTest
     public class MemoryModuleTests
     {
         [TestMethod]
-        public void LoadKernel32()
+        public void Kernel32()
         {
-            var kernel32Bytes = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, "kernel32.dll"));
-            _ = new MemoryModule(kernel32Bytes);
+            var dllBytes = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, "kernel32.dll"));
+            var mapped = new MemoryModule(dllBytes);
+            _ = mapped.Exports["CloseHandle"];
+        }
+
+        [TestMethod]
+        public void User32()
+        {
+            var dllBytes = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, "user32.dll"));
+            var mapped = new MemoryModule(dllBytes);
+            _ = mapped.Exports["MessageBoxW"];
         }
     }
 }
