@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public partial class MemoryModule : IDisposable
+    public partial class MemoryModule : IModule
     {
         public bool Disposed { get; private set; }
 
