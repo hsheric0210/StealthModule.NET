@@ -1,10 +1,11 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
     public partial class MemoryModule
     {
-        private static void CopySections(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress, Pointer ntHeadersAddress, byte[] data)
+        private static void CopySections(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress, Pointer ntHeadersAddress, byte[] data, bool noAllocation)
         {
             var sectionOffset = NativeMethods.IMAGE_FIRST_SECTION(ntHeadersAddress, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i < ntHeadersData.FileHeader.NumberOfSections; i++, sectionOffset += NativeSizes.IMAGE_SECTION_HEADER)
@@ -16,7 +17,7 @@ namespace StealthModule
                     var size = ntHeadersData.OptionalHeader.SectionAlignment;
                     if (size > 0)
                     {
-                        var dest = NativeMethods.VirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, (Pointer)size, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                        var dest = ConditionalVirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, (Pointer)size, AllocationType.COMMIT, MemoryProtection.READWRITE, noAllocation);
                         if (dest == Pointer.Zero)
                             throw new ModuleException("Unable to allocate memory");
 
@@ -28,6 +29,7 @@ namespace StealthModule
 
                         var zeros = new byte[size];
                         Marshal.Copy(zeros, 0, dest, unchecked((int)size));
+                        Console.WriteLine($"Write section alignment of size {size} to {dest}");
                     }
 
                     // section is empty
@@ -35,7 +37,7 @@ namespace StealthModule
                 else
                 {
                     // commit memory block and copy data from dll
-                    var dest = NativeMethods.VirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, (Pointer)sectionHeader.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    var dest = ConditionalVirtualAlloc(moduleBaseAddress + sectionHeader.VirtualAddress, (Pointer)sectionHeader.SizeOfRawData, AllocationType.COMMIT, MemoryProtection.READWRITE, noAllocation);
                     if (dest == Pointer.Zero)
                         throw new ModuleException("Out of memory");
 

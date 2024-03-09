@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StealthModule.Kernel.NETCor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunDll32", "Example\RunDll32\RunDll32.csproj", "{18F55CB2-6AAA-4F4D-BE66-CCDB369AED6F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExportLister", "Example\ExportLister\ExportLister.csproj", "{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExportLister", "Example\ExportLister\ExportLister.csproj", "{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -121,10 +121,10 @@ Global
 		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Debug|x86.Build.0 = Debug|Any CPU
 		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x64.ActiveCfg = Release|Any CPU
-		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x64.Build.0 = Release|Any CPU
-		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x86.ActiveCfg = Release|Any CPU
-		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x86.Build.0 = Release|Any CPU
+		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x64.ActiveCfg = Release|x64
+		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x64.Build.0 = Release|x64
+		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x86.ActiveCfg = Release|x86
+		{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

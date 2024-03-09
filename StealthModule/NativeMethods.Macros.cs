@@ -1,4 +1,6 @@
-﻿namespace StealthModule
+﻿using System;
+
+namespace StealthModule
 {
     internal partial class NativeMethods
     {
@@ -13,5 +15,7 @@
 
         // Equivalent to the IMAGE_SNAP_BY_ORDINAL32/64 macro
         internal static bool IMAGE_SNAP_BY_ORDINAL(Pointer ordinal) => Pointer.Is64Bit ? ((long)ordinal < 0) : ((int)ordinal < 0);
+
+        internal static IntPtr GetCurrentProcess() => (IntPtr)(-1);
     }
 }

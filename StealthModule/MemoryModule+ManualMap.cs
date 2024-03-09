@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.ExceptionServices;
+using System.Threading;
 
 namespace StealthModule
 {
     public partial class MemoryModule
     {
-        private void ManualMap(byte[] data)
+        [HandleProcessCorruptedStateExceptions]
+        private void ManualMap(byte[] data, Pointer desiredAddress)
         {
             if (data.Length < Marshal.SizeOf(typeof(ImageDosHeader)))
                 throw new BadImageFormatException("DOS header too small");
@@ -41,10 +44,21 @@ namespace StealthModule
                 throw new BadImageFormatException("Wrong section alignment");
 
             var desiredImageBase = Is64BitProcess ? ((Pointer)unchecked((long)ntHeadersData.OptionalHeader.ImageBaseLong)) : ((Pointer)unchecked((int)(ntHeadersData.OptionalHeader.ImageBaseLong >> 32)));
-            BaseAddress = AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
+            var noAllocation = desiredAddress != Pointer.Zero;
+            BaseAddress = noAllocation ? desiredAddress : AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
+
+            Console.WriteLine("Alloc done @ " + BaseAddress);
 
             // commit memory for headers
-            ntHeadersAddress = AllocateAndCopyNtHeaders(BaseAddress, data, dosHeader, ntHeadersData);
+            var headers = ConditionalVirtualAlloc(BaseAddress, (Pointer)ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE, noAllocation);
+            if (headers == Pointer.Zero)
+                throw new ModuleException("Out of Memory");
+
+            // copy PE header to code
+            Marshal.Copy(data, 0, headers, (int)ntHeadersData.OptionalHeader.SizeOfHeaders);
+            ntHeadersAddress = headers + dosHeader.e_lfanew;
+
+            Console.WriteLine("header copy done.");
 
             var locationDelta = BaseAddress - desiredImageBase;
             if (locationDelta != Pointer.Zero)
@@ -54,21 +68,41 @@ namespace StealthModule
                 imageBaseAddress.Write((IntPtr)BaseAddress);
             }
 
+            Console.WriteLine("baseaddr write done.");
+
             // copy sections from DLL file block to new memory location
-            CopySections(ref ntHeadersData, BaseAddress, ntHeadersAddress, data);
+            CopySections(ref ntHeadersData, BaseAddress, ntHeadersAddress, data, noAllocation);
+
+            Console.WriteLine("copy sections done.");
 
             // adjust base address of imported data
             isRelocated = locationDelta == Pointer.Zero || PerformBaseRelocation(ref ntHeadersData, BaseAddress, locationDelta);
 
+            Console.WriteLine("relocation done.");
+
             // load required dlls and adjust function table of imports
             importModuleBaseAddresses = BuildImportTable(ref ntHeadersData, BaseAddress);
+
+            Console.WriteLine("IAT rebuild done.");
 
             // mark memory pages depending on section headers and release
             // sections that are marked as "discardable"
             FinalizeSections(ref ntHeadersData, BaseAddress, ntHeadersAddress, systemInfo.dwPageSize);
 
-            // TLS callbacks are executed BEFORE the main loading
-            ExecuteTLS(ref ntHeadersData, BaseAddress);
+            Console.WriteLine("section protect done.");
+
+            try
+            {
+                // TLS callbacks are executed BEFORE the main loading
+                ExecuteTLS(ref ntHeadersData, BaseAddress);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+            Thread.Sleep(30000);
+
+            Console.WriteLine("tls done.");
 
             // get entry point of loaded library
             IsDll = (ntHeadersData.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
@@ -89,6 +123,8 @@ namespace StealthModule
                     exeEntryPoint = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
                 }
             }
+
+            Console.WriteLine("dllmain call done.");
         }
 
         private static uint GetMachineType() => Is64BitProcess ? NativeMagics.IMAGE_FILE_MACHINE_AMD64 : NativeMagics.IMAGE_FILE_MACHINE_I386;

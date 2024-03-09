@@ -30,12 +30,21 @@ namespace StealthModule
         /// Loads a unmanged (native) DLL in the memory.
         /// </summary>
         /// <param name="data">Dll as a byte array</param>
-        public MemoryModule(byte[] data)
+        public MemoryModule(byte[] data) : this(data, Pointer.Zero)
+        {
+        }
+
+        /// <summary>
+        /// Loads a unmanged (native) DLL in the memory at the desired address.
+        /// </summary>
+        /// <param name="data">Dll as a byte array</param>
+        /// <param name="desiredAddress">The desired address to load the module. If it is not zero, the manual mapper assumes that the address is already allocated and zeroed. (Skip the allocation step) If it is zero, this parameter is ignored.</param>
+        public MemoryModule(byte[] data, Pointer desiredAddress)
         {
             Disposed = false;
             if (data == null)
                 throw new ArgumentNullException("data");
-            ManualMap(data);
+            ManualMap(data, desiredAddress);
             Exports = new ExportResolver(BaseAddress);
         }
 

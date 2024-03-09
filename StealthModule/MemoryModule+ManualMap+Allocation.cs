@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
+using static StealthModule.NativeMethods.Delegates;
 
 namespace StealthModule
 {
@@ -38,15 +40,19 @@ namespace StealthModule
             return memory;
         }
 
-        private static Pointer AllocateAndCopyNtHeaders(Pointer moduleBaseAddress, byte[] data, ImageDosHeader dosHeader, ImageNtHeaders ntHeadersData)
+        private static Pointer ConditionalVirtualAlloc(Pointer desiredAddress, Pointer size, AllocationType allocationType, MemoryProtection memoryProtection, bool noAllocation)
         {
-            var headers = NativeMethods.VirtualAlloc(moduleBaseAddress, (Pointer)ntHeadersData.OptionalHeader.SizeOfHeaders, AllocationType.COMMIT, MemoryProtection.READWRITE);
-            if (headers == Pointer.Zero)
-                throw new ModuleException("Out of Memory");
+            if (noAllocation)
+                return desiredAddress;
 
-            // copy PE header to code
-            Marshal.Copy(data, 0, headers, (int)ntHeadersData.OptionalHeader.SizeOfHeaders);
-            return headers + dosHeader.e_lfanew;
+            //return NativeMethods.VirtualAlloc(desiredAddress, size, allocationType, memoryProtection);
+            IntPtr address = desiredAddress;
+            IntPtr size2 = size;
+            var status = NativeMethods.NtAllocateVirtualMemory(NativeMethods.GetCurrentProcess(), ref address, IntPtr.Zero, ref size2, allocationType, memoryProtection);
+            if (!NativeMethods.NT_SUCCESS(status))
+                throw new ModuleException("NtAllocateVirtualMemory returned " + status);
+
+            return address;
         }
     }
 }
