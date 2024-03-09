@@ -11,15 +11,14 @@ namespace StealthModule
 
         public ExportResolver Exports { get; }
 
-        private Pointer moduleBaseAddress = Pointer.Zero;
+        public Pointer ModuleBaseAddress { get; private set; } = Pointer.Zero;
+
         private Pointer ntHeadersAddress = Pointer.Zero;
         private Pointer[] importModuleBaseAddresses;
         private bool wasDllMainSuccessful;
         private DllEntryDelegate dllEntryPoint;
         private ExeEntryDelegate exeEntryPoint;
         private bool isRelocated;
-
-        public Pointer ModuleBaseAddress => moduleBaseAddress;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
@@ -37,7 +36,7 @@ namespace StealthModule
             if (data == null)
                 throw new ArgumentNullException("data");
             ManualMap(data);
-            Exports = new ExportResolver(moduleBaseAddress);
+            Exports = new ExportResolver(ModuleBaseAddress);
         }
 
         ~MemoryModule()
@@ -80,7 +79,7 @@ namespace StealthModule
 
             if (wasDllMainSuccessful && dllEntryPoint != null && !noDetachCall)
             {
-                dllEntryPoint.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                dllEntryPoint.Invoke(ModuleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
 
                 wasDllMainSuccessful = false;
             }
@@ -96,10 +95,10 @@ namespace StealthModule
                 importModuleBaseAddresses = null;
             }
 
-            if (moduleBaseAddress != Pointer.Zero)
+            if (ModuleBaseAddress != Pointer.Zero)
             {
-                NativeMethods.VirtualFree(moduleBaseAddress, IntPtr.Zero, AllocationType.RELEASE);
-                moduleBaseAddress = Pointer.Zero;
+                NativeMethods.VirtualFree(ModuleBaseAddress, IntPtr.Zero, AllocationType.RELEASE);
+                ModuleBaseAddress = Pointer.Zero;
                 ntHeadersAddress = Pointer.Zero;
             }
 
