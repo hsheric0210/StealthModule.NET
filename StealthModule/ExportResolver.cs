@@ -26,7 +26,7 @@ namespace StealthModule
 
         public void CacheAllExports()
         {
-            WalkEDT(moduleBase, entry =>
+            WalkEDT(entry =>
             {
                 nameMapping[entry.FunctionName] = entry.FunctionAddress;
                 ordinalMapping[entry.FunctionOrdinal] = entry.FunctionAddress;
@@ -40,7 +40,7 @@ namespace StealthModule
                 return pointer;
 
             var address = Pointer.Zero;
-            WalkEDT(moduleBase, entry =>
+            WalkEDT(entry =>
             {
                 if (string.Equals(entry.FunctionName, functionName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -60,7 +60,7 @@ namespace StealthModule
                 return pointer;
 
             var address = Pointer.Zero;
-            WalkEDT(moduleBase, entry =>
+            WalkEDT(entry =>
             {
                 if (entry.FunctionOrdinal == functionOrdinal)
                 {
@@ -145,7 +145,7 @@ namespace StealthModule
         /// <param name="moduleBase">The base address of the module in memory.</param>
         /// <param name="callback">Callback function for each Export entry. Return <c>true</c> from the callback to stop the iteration.</param>
         /// <exception cref="ModuleException"></exception>
-        public static void WalkEDT(Pointer moduleBase, ExportCallback callback)
+        public void WalkEDT(ExportCallback callback)
         {
             try
             {

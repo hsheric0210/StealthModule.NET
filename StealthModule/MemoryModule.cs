@@ -19,6 +19,8 @@ namespace StealthModule
         private ExeEntryDelegate exeEntryPoint;
         private bool isRelocated;
 
+        public Pointer ModuleBaseAddress => moduleBaseAddress;
+
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
 
@@ -71,11 +73,14 @@ namespace StealthModule
             GC.SuppressFinalize(this);
         }
 
-        public void Dispose()
+        public void Dispose(bool noDetachCall = false)
         {
-            if (wasDllMainSuccessful)
+            if (Disposed)
+                return;
+
+            if (wasDllMainSuccessful && dllEntryPoint != null && !noDetachCall)
             {
-                dllEntryPoint?.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                dllEntryPoint.Invoke(moduleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
 
                 wasDllMainSuccessful = false;
             }
