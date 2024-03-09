@@ -8,7 +8,7 @@ namespace StealthModule
 {
     public class ModuleStomping : IModule
     {
-        private FileModule decoyModule;
+        private FileMapping decoyModule;
         private MemoryModule realModule;
 
         public Pointer BaseAddress { get; private set; }
@@ -38,7 +38,7 @@ namespace StealthModule
             if (decoySize < data.Length)
                 throw new ArgumentException("Decoy module is too small to host the payload.");
 
-            decoyModule = new FileModule(DecoyModulePath);
+            decoyModule = new FileMapping(DecoyModulePath);
             var decoyInfo = new PEHeader(decoyModule.BaseAddress);
 
             IntPtr decoyBase = decoyModule.BaseAddress;

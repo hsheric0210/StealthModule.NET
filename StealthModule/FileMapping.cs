@@ -4,13 +4,13 @@ using System.IO;
 
 namespace StealthModule
 {
-    public class FileModule : IModule
+    public class FileMapping : IModule
     {
-        public ExportResolver Exports { get; }
+        public ExportResolver Exports => throw new NotSupportedException("FileModuleMapping-mapped DLL does not support exports.");
 
         public Pointer BaseAddress { get; }
 
-        public FileModule(string dllFilePath)
+        public FileMapping(string dllFilePath)
         {
             // Check file exists
             if (!File.Exists(dllFilePath))
@@ -19,12 +19,12 @@ namespace StealthModule
             }
 
             // Open file handle
-            UNICODE_STRING ObjectName = new UNICODE_STRING();
+            var ObjectName = new UNICODE_STRING();
             NativeMethods.RtlInitUnicodeString(ref ObjectName, @"\??\" + dllFilePath);
             var objectNameAddress = Marshal.AllocHGlobal(Marshal.SizeOf(ObjectName));
             Marshal.StructureToPtr(ObjectName, objectNameAddress, true);
 
-            OBJECT_ATTRIBUTES objectAttributes = new OBJECT_ATTRIBUTES();
+            var objectAttributes = new OBJECT_ATTRIBUTES();
             objectAttributes.Length = Marshal.SizeOf(objectAttributes);
             objectAttributes.ObjectName = objectNameAddress;
             objectAttributes.Attributes = 0x40; // OBJ_CASE_INSENSITIVE
@@ -73,7 +73,6 @@ namespace StealthModule
                 throw new ModuleException("Unable to map view of section: NtMapViewOfSection returned " + status);
 
             BaseAddress = mapBaseAddress;
-            Exports = new ExportResolver(BaseAddress);
         }
 
         public void Dispose()
