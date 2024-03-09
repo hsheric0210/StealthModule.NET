@@ -11,7 +11,7 @@ namespace StealthModule
 
         public ExportResolver Exports { get; }
 
-        public Pointer ModuleBaseAddress { get; private set; } = Pointer.Zero;
+        public Pointer BaseAddress { get; private set; } = Pointer.Zero;
 
         private Pointer ntHeadersAddress = Pointer.Zero;
         private Pointer[] importModuleBaseAddresses;
@@ -36,7 +36,7 @@ namespace StealthModule
             if (data == null)
                 throw new ArgumentNullException("data");
             ManualMap(data);
-            Exports = new ExportResolver(ModuleBaseAddress);
+            Exports = new ExportResolver(BaseAddress);
         }
 
         ~MemoryModule()
@@ -79,7 +79,7 @@ namespace StealthModule
 
             if (wasDllMainSuccessful && dllEntryPoint != null && !noDetachCall)
             {
-                dllEntryPoint.Invoke(ModuleBaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                dllEntryPoint.Invoke(BaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
 
                 wasDllMainSuccessful = false;
             }
@@ -95,10 +95,10 @@ namespace StealthModule
                 importModuleBaseAddresses = null;
             }
 
-            if (ModuleBaseAddress != Pointer.Zero)
+            if (BaseAddress != Pointer.Zero)
             {
-                NativeMethods.VirtualFree(ModuleBaseAddress, IntPtr.Zero, AllocationType.RELEASE);
-                ModuleBaseAddress = Pointer.Zero;
+                NativeMethods.VirtualFree(BaseAddress, IntPtr.Zero, AllocationType.RELEASE);
+                BaseAddress = Pointer.Zero;
                 ntHeadersAddress = Pointer.Zero;
             }
 

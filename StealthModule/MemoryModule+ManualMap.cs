@@ -41,34 +41,34 @@ namespace StealthModule
                 throw new BadImageFormatException("Wrong section alignment");
 
             var desiredImageBase = Is64BitProcess ? ((Pointer)unchecked((long)ntHeadersData.OptionalHeader.ImageBaseLong)) : ((Pointer)unchecked((int)(ntHeadersData.OptionalHeader.ImageBaseLong >> 32)));
-            ModuleBaseAddress = AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
+            BaseAddress = AllocateBaseMemory(ref ntHeadersData, alignedImageSize, desiredImageBase);
 
             // commit memory for headers
-            ntHeadersAddress = AllocateAndCopyNtHeaders(ModuleBaseAddress, data, dosHeader, ntHeadersData);
+            ntHeadersAddress = AllocateAndCopyNtHeaders(BaseAddress, data, dosHeader, ntHeadersData);
 
-            var locationDelta = ModuleBaseAddress - desiredImageBase;
+            var locationDelta = BaseAddress - desiredImageBase;
             if (locationDelta != Pointer.Zero)
             {
                 // update relocated position
                 var imageBaseAddress = ntHeadersAddress + (NativeOffsets.IMAGE_NT_HEADERS_OptionalHeader + (Is64BitProcess ? NativeOffsets64.IMAGE_OPTIONAL_HEADER_ImageBase : NativeOffsets32.IMAGE_OPTIONAL_HEADER_ImageBase));
-                imageBaseAddress.Write((IntPtr)ModuleBaseAddress);
+                imageBaseAddress.Write((IntPtr)BaseAddress);
             }
 
             // copy sections from DLL file block to new memory location
-            CopySections(ref ntHeadersData, ModuleBaseAddress, ntHeadersAddress, data);
+            CopySections(ref ntHeadersData, BaseAddress, ntHeadersAddress, data);
 
             // adjust base address of imported data
-            isRelocated = locationDelta == Pointer.Zero || PerformBaseRelocation(ref ntHeadersData, ModuleBaseAddress, locationDelta);
+            isRelocated = locationDelta == Pointer.Zero || PerformBaseRelocation(ref ntHeadersData, BaseAddress, locationDelta);
 
             // load required dlls and adjust function table of imports
-            importModuleBaseAddresses = BuildImportTable(ref ntHeadersData, ModuleBaseAddress);
+            importModuleBaseAddresses = BuildImportTable(ref ntHeadersData, BaseAddress);
 
             // mark memory pages depending on section headers and release
             // sections that are marked as "discardable"
-            FinalizeSections(ref ntHeadersData, ModuleBaseAddress, ntHeadersAddress, systemInfo.dwPageSize);
+            FinalizeSections(ref ntHeadersData, BaseAddress, ntHeadersAddress, systemInfo.dwPageSize);
 
             // TLS callbacks are executed BEFORE the main loading
-            ExecuteTLS(ref ntHeadersData, ModuleBaseAddress);
+            ExecuteTLS(ref ntHeadersData, BaseAddress);
 
             // get entry point of loaded library
             IsDll = (ntHeadersData.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
@@ -77,15 +77,15 @@ namespace StealthModule
                 if (IsDll)
                 {
                     // notify library about attaching to process
-                    var dllEntryPtr = ModuleBaseAddress + ntHeadersData.OptionalHeader.AddressOfEntryPoint;
+                    var dllEntryPtr = BaseAddress + ntHeadersData.OptionalHeader.AddressOfEntryPoint;
                     dllEntryPoint = (DllEntryDelegate)Marshal.GetDelegateForFunctionPointer(dllEntryPtr, typeof(DllEntryDelegate));
-                    wasDllMainSuccessful = dllEntryPoint != null && dllEntryPoint(ModuleBaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
+                    wasDllMainSuccessful = dllEntryPoint != null && dllEntryPoint(BaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
                     if (!wasDllMainSuccessful)
                         throw new ModuleException("Can't attach DLL to process");
                 }
                 else
                 {
-                    var exeEntryPtr = ModuleBaseAddress + ntHeadersData.OptionalHeader.AddressOfEntryPoint;
+                    var exeEntryPtr = BaseAddress + ntHeadersData.OptionalHeader.AddressOfEntryPoint;
                     exeEntryPoint = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
                 }
             }

@@ -72,7 +72,7 @@ namespace RunDll32
 
                 Console.WriteLine("[+] Console window handle is 0x" + (Pointer)hwnd);
                 Console.WriteLine($"[+] Command line is '{cmdLine}'");
-                entry(hwnd, module.ModuleBaseAddress, cmdLine, 1);// 1 = SW_NORMAL
+                entry(hwnd, module.BaseAddress, cmdLine, 1);// 1 = SW_NORMAL
 
                 Console.WriteLine("[+] The entry point call was successful.");
             }

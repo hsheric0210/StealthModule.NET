@@ -32,7 +32,7 @@ namespace ExportLister
                 Console.WriteLine($"[+] Read {bytes.Length} bytes from the disk.");
 
                 mapped = new MemoryModule(bytes);
-                moduleHandle = mapped.ModuleBaseAddress;
+                moduleHandle = mapped.BaseAddress;
                 resolver = mapped.Exports;
 
                 Console.WriteLine($"[+] The DLL is manual mapped to {moduleHandle}");
