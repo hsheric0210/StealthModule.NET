@@ -47,7 +47,7 @@ namespace StealthModule
             ulong maxSize = 0;
             status = NativeMethods.NtCreateSection(
                 ref sectionHandle,
-                ACCESS_MASK.SECTION_ALL_ACCESS,
+                AccessMask.SECTION_ALL_ACCESS,
                 IntPtr.Zero,
                 ref maxSize,
                 MemoryProtection.READONLY,

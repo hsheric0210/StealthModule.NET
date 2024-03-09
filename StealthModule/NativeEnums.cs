@@ -48,7 +48,7 @@ namespace StealthModule
     }
 
     [Flags]
-    public enum ACCESS_MASK : uint
+    public enum AccessMask : uint
     {
         DELETE = 0x00010000,
         READ_CONTROL = 0x00020000,

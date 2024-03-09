@@ -34,7 +34,7 @@ namespace StealthModule
             rtlInitUnicodeString(ref destinationString, sourceString);
         }
 
-        internal static NTSTATUS NtCreateSection(ref IntPtr sectionHandle, ACCESS_MASK desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes AllocationAttributes, IntPtr fileHandle)
+        internal static NTSTATUS NtCreateSection(ref IntPtr sectionHandle, AccessMask desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes AllocationAttributes, IntPtr fileHandle)
         {
             if (ntCreateSection == null)
                 InitNtDll();
