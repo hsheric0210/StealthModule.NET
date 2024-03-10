@@ -98,7 +98,7 @@ namespace StealthModule
                 foreach (var m in importModuleBaseAddresses)
                 {
                     if (!m.IsInvalidHandle())
-                        NativeMethods.FreeLibrary(m);
+                        NativeMethods.LdrUnloadDll(m);
                 }
 
                 importModuleBaseAddresses = null;
@@ -106,7 +106,7 @@ namespace StealthModule
 
             if (BaseAddress != Pointer.Zero)
             {
-                NativeMethods.VirtualFree(BaseAddress, IntPtr.Zero, AllocationType.RELEASE);
+                NativeMethods.FreeVirtualMemory(BaseAddress, IntPtr.Zero, AllocationType.RELEASE);
                 BaseAddress = Pointer.Zero;
                 ntHeadersAddress = Pointer.Zero;
             }

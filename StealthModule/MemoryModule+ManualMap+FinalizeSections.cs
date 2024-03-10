@@ -67,7 +67,7 @@ namespace StealthModule
                 if (sectionData.Address == sectionData.AlignedAddress && (sectionData.Last || sectionAlignment == pageSize || (ulong)sectionData.Size % pageSize == 0))
                 {
                     // Only allowed to decommit whole pages
-                    NativeMethods.VirtualFree(sectionData.Address, sectionData.Size, AllocationType.DECOMMIT);
+                    NativeMethods.FreeVirtualMemory(sectionData.Address, sectionData.Size, AllocationType.DECOMMIT);
                 }
 
                 return;
@@ -82,7 +82,7 @@ namespace StealthModule
                 protect |= MemoryProtection.NOCACHE;
 
             // change memory access flags
-            if (!NativeMethods.VirtualProtect(sectionData.Address, sectionData.Size, protect, out _))
+            if (!NativeMethods.ProtectVirtualMemory(sectionData.Address, sectionData.Size, protect))
                 throw new ModuleException("Error protecting memory page");
         }
 

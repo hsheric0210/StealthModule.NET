@@ -33,13 +33,12 @@ namespace StealthModule
             const int headerSize = 0x1000; // '.text' section starts from 0x1000; all before that can be considered as header data.
             random = random ?? new Random();
 
-            if (!NativeMethods.VirtualProtect(BaseAddress, (Pointer)headerSize, MemoryProtection.READWRITE, out var oldProtection))
-                return; // Failed to unprotect
+            NativeMethods.ProtectVirtualMemory(BaseAddress, (Pointer)headerSize, MemoryProtection.READWRITE, out var oldProtection);
 
             for (var i = 0; i < headerSize; i++)
                 Marshal.WriteByte(BaseAddress, i, (byte)random.Next(0xff));
 
-            NativeMethods.VirtualProtect(BaseAddress, (Pointer)headerSize, oldProtection, out _); // Revert protection to attempt perfect crime
+            NativeMethods.ProtectVirtualMemory(BaseAddress, (Pointer)headerSize, oldProtection); // Revert protection to attempt perfect crime
         }
     }
 }

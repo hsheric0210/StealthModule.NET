@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
@@ -85,12 +84,12 @@ namespace StealthModule
             return ntQuerySystemInformation(systemInformationClass, systemInformation, systemInformationLength, out returnLength);
         }
 
-        internal static NTSTATUS LdrLoadDll(string pathToFile, uint flags, IntPtr moduleFileName, out IntPtr moduleHandle)
+        internal static NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UNICODE_STRING moduleFileName, out IntPtr moduleHandle)
         {
             if (ldrLoadDll == null)
                 InitNtDLL();
 
-            return ldrLoadDll(pathToFile, flags, moduleFileName, out moduleHandle);
+            return ldrLoadDll(pathToFile, flags, ref moduleFileName, out moduleHandle);
         }
 
         internal static NTSTATUS LdrUnloadDll(IntPtr moduleHandle)

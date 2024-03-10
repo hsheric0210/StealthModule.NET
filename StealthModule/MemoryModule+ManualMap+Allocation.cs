@@ -8,12 +8,12 @@ namespace StealthModule
         {
 
             // reserve memory for image of library
-            var memory = NativeMethods.VirtualAlloc(desiredImageBase, (Pointer)ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+            var memory = NativeMethods.AllocVirtualMemory(desiredImageBase, (Pointer)ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
             //pCode = IntPtr.Zero; //test relocation with this
 
             // try to allocate memory at arbitrary position
             if (memory == Pointer.Zero)
-                memory = NativeMethods.VirtualAlloc(Pointer.Zero, (Pointer)ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+                memory = NativeMethods.AllocVirtualMemory(Pointer.Zero, (Pointer)ntHeadersData.OptionalHeader.SizeOfImage, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
 
             if (memory == Pointer.Zero)
                 throw new ModuleException("Out of Memory");
@@ -25,12 +25,12 @@ namespace StealthModule
                 while (memory.SpanBoundary(alignedImageSize, 32))
                 {
                     blockedMemory.Add(memory);
-                    memory = NativeMethods.VirtualAlloc(Pointer.Zero, (Pointer)alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
+                    memory = NativeMethods.AllocVirtualMemory(Pointer.Zero, (Pointer)alignedImageSize, AllocationType.RESERVE | AllocationType.COMMIT, MemoryProtection.READWRITE);
                     if (memory == Pointer.Zero)
                         break;
                 }
                 foreach (var ptr in blockedMemory)
-                    NativeMethods.VirtualFree(ptr, Pointer.Zero, AllocationType.RELEASE);
+                    NativeMethods.FreeVirtualMemory(ptr, Pointer.Zero, AllocationType.RELEASE);
                 if (memory == Pointer.Zero)
                     throw new ModuleException("Out of Memory");
             }

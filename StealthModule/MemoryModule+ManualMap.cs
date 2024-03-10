@@ -26,7 +26,7 @@ namespace StealthModule
 
             IsDll = (ntHeadersData.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
 
-            NativeMethods.GetNativeSystemInfo(out var systemInfo);
+            NativeMethods.GetSystemPageSize(out var pageSize);
             uint lastSectionEnd = 0;
             var sectionOffset = NativeMethods.IMAGE_FIRST_SECTION(dosHeader.e_lfanew, ntHeadersData.FileHeader.SizeOfOptionalHeader);
             for (var i = 0; i != ntHeadersData.FileHeader.NumberOfSections; i++, sectionOffset += NativeSizes.IMAGE_SECTION_HEADER)
@@ -37,8 +37,8 @@ namespace StealthModule
                     lastSectionEnd = endOfSection;
             }
 
-            var alignedImageSize = AlignValueUp(ntHeadersData.OptionalHeader.SizeOfImage, systemInfo.dwPageSize);
-            var alignedLastSection = AlignValueUp(lastSectionEnd, systemInfo.dwPageSize);
+            var alignedImageSize = AlignValueUp(ntHeadersData.OptionalHeader.SizeOfImage, pageSize);
+            var alignedLastSection = AlignValueUp(lastSectionEnd, pageSize);
             if (alignedImageSize != alignedLastSection)
                 throw new BadImageFormatException("Wrong section alignment");
 
@@ -74,7 +74,7 @@ namespace StealthModule
 
             // mark memory pages depending on section headers and release
             // sections that are marked as "discardable"
-            FinalizeSections(ref ntHeadersData, BaseAddress, ntHeadersAddress, systemInfo.dwPageSize);
+            FinalizeSections(ref ntHeadersData, BaseAddress, ntHeadersAddress, pageSize);
 
             if (stomping) // When stomping, calling the module is mostly end up causing SEGFAULTs.
                 return;

@@ -55,4 +55,23 @@ namespace StealthModule
         public IntPtr Status;
         public IntPtr Information;
     }
+
+    /// <summary>
+    /// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntexapi/system_basic_information.htm
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SYSTEM_BASIC_INFORMATION
+    {
+        public uint Reserved;
+        public uint TimerResolution;
+        public uint PageSize;
+        public uint NumberOfPhysicalPages;
+        public uint LowestPhysicalPageNumber;
+        public uint HighestPhysicalPageNumber;
+        public uint AllocationGranularity;
+        public IntPtr MinimumUserModeAddress;
+        public IntPtr MaximumUserModeAddress;
+        public IntPtr ActiveProcessorsAffinityMask;
+        public uint NumberOfProcessors;
+    }
 }

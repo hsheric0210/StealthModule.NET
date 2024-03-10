@@ -38,7 +38,7 @@ namespace StealthModule
             internal delegate NTSTATUS NtQuerySystemInformation(SystemInformationClass systemInformationClass, IntPtr systemInformation, uint systemInformationLength, out uint returnLength);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate NTSTATUS LdrLoadDll([MarshalAs(UnmanagedType.LPWStr)] string pathToFile, uint flags, IntPtr moduleFileName, out IntPtr moduleHandle);
+            internal delegate NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UNICODE_STRING moduleFileName, out IntPtr moduleHandle);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS LdrUnloadDll(IntPtr moduleHandle);
