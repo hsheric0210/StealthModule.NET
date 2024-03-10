@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
@@ -74,6 +75,30 @@ namespace StealthModule
                 InitNtDll();
 
             return ntProtectVirtualMemory(processHandle, ref baseAddress, ref regionSize, newProtect, out oldProtect);
+        }
+
+        internal static NTSTATUS LdrLoadDll(string pathToFile, uint flags, IntPtr moduleFileName, out IntPtr moduleHandle)
+        {
+            if (ldrLoadDll == null)
+                InitNtDll();
+
+            return ldrLoadDll(pathToFile, flags, moduleFileName, out moduleHandle);
+        }
+
+        internal static NTSTATUS LdrUnloadDll(IntPtr moduleHandle)
+        {
+            if (ldrUnloadDll == null)
+                InitNtDll();
+
+            return ldrUnloadDll(moduleHandle);
+        }
+
+        internal static NTSTATUS LdrGetProcedureAddress(IntPtr moduleHandle, IntPtr functionName, IntPtr ordinal, out IntPtr functionAddress)
+        {
+            if (ldrGetProcedureAddress == null)
+                InitNtDll();
+
+            return ldrGetProcedureAddress(moduleHandle, functionName, ordinal, out functionAddress);
         }
     }
 }

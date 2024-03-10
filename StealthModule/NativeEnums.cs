@@ -94,4 +94,34 @@ namespace StealthModule
         SECTION_MAP_EXECUTE = 0x0008,
         SECTION_EXTEND_SIZE = 0x0010
     };
+
+    /// <summary>
+    /// https://learn.microsoft.com/ko-kr/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibraryexa
+    /// </summary>
+    [Flags]
+    public enum LoadLibraryFlags : uint
+    {
+        None = 0,
+        DONT_RESOLVE_DLL_REFERENCES = 1 << 0,
+        LOAD_LIBRARY_AS_DATAFILE = 1 << 1,
+        LOAD_WITH_ALTERED_SEARCH_PATH = 1 << 3,
+        LOAD_IGNORE_CODE_AUTHZ_LEVEL = 1 << 4,
+        LOAD_LIBRARY_AS_IMAGE_RESOURCE = 1 << 5,
+        LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE = 1 << 6,
+        LOAD_LIBRARY_REQUIRE_SIGNED_TARGET = 1 << 7,
+        LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR = 1 << 8,
+        LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 1 << 9,
+        LOAD_LIBRARY_SEARCH_USER_DIRS = 1 << 10,
+        LOAD_LIBRARY_SEARCH_SYSTEM32 = 1 << 11,
+        LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 1 << 12,
+        LOAD_LIBRARY_SAFE_CURRENT_DIRS = 1 << 13,
+    }
+
+    /// <summary>
+    /// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntexapi/system_information_class.htm
+    /// </summary>
+    public enum SystemInformationClass : uint
+    {
+        SystemBasicInformation = 0x00,
+    }
 }

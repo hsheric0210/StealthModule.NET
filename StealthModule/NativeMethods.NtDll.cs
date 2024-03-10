@@ -14,6 +14,10 @@ namespace StealthModule
         private static NtWriteVirtualMemory ntWriteVirtualMemory;
         private static NtAllocateVirtualMemory ntAllocateVirtualMemory;
         private static NtFreeVirtualMemory ntFreeVirtualMemory;
+        private static NtQuerySystemInformation ntQuerySystemInformation;
+        private static LdrLoadDll ldrLoadDll;
+        private static LdrUnloadDll ldrUnloadDll;
+        private static LdrGetProcedureAddress ldrGetProcedureAddress;
 
         internal static void InitNtDll()
         {
@@ -31,6 +35,10 @@ namespace StealthModule
             ntFreeVirtualMemory = kernel32.GetExport<NtFreeVirtualMemory>("NtFreeVirtualMemory");
             ntWriteVirtualMemory = kernel32.GetExport<NtWriteVirtualMemory>("NtWriteVirtualMemory");
             ntProtectVirtualMemory = kernel32.GetExport<NtProtectVirtualMemory>("NtProtectVirtualMemory");
+            ntQuerySystemInformation = kernel32.GetExport<NtQuerySystemInformation>("NtQuerySystemInformation");
+            ldrLoadDll = kernel32.GetExport<LdrLoadDll>("LdrLoadDll");
+            ldrUnloadDll = kernel32.GetExport<LdrUnloadDll>("LdrUnloadDll");
+            ldrGetProcedureAddress = kernel32.GetExport<LdrGetProcedureAddress>("LdrGetProcedureAddress");
             ntdllInitialized = true;
         }
     }

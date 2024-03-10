@@ -33,6 +33,18 @@ namespace StealthModule
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS NtProtectVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, MemoryProtection newProtect, out MemoryProtection oldProtect);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS NtQuerySystemInformation(SystemInformationClass systemInformationClass, IntPtr systemInformation, uint systemInformationLength, out uint returnLength);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS LdrLoadDll([MarshalAs(UnmanagedType.LPWStr)] string pathToFile, uint flags, IntPtr moduleFileName, out IntPtr moduleHandle);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS LdrUnloadDll(IntPtr moduleHandle);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS LdrGetProcedureAddress(IntPtr moduleHandle, IntPtr functionName, IntPtr ordinal, out IntPtr functionAddress);
         }
     }
 }
