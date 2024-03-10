@@ -8,7 +8,7 @@ namespace StealthModule
         internal static void RtlInitUnicodeString(ref UNICODE_STRING destinationString, string sourceString)
         {
             if (rtlInitUnicodeString == null)
-                InitNtDll();
+                InitNtDLL();
 
             rtlInitUnicodeString(ref destinationString, sourceString);
         }
@@ -16,7 +16,7 @@ namespace StealthModule
         internal static void RtlZeroMemory(IntPtr destination, int length)
         {
             if (rtlZeroMemory == null)
-                InitNtDll();
+                InitNtDLL();
 
             rtlZeroMemory(destination, length);
         }
@@ -24,7 +24,7 @@ namespace StealthModule
         internal static NTSTATUS NtCreateSection(ref IntPtr sectionHandle, AccessMask desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes AllocationAttributes, IntPtr fileHandle)
         {
             if (ntCreateSection == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntCreateSection(ref sectionHandle, (uint)desiredAccess, objectAttributes, ref maximumSize, sectionPageProtection, AllocationAttributes, fileHandle);
         }
@@ -32,7 +32,7 @@ namespace StealthModule
         internal static NTSTATUS NtMapViewOfSection(IntPtr sectionHandle, IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, IntPtr commitSize, IntPtr sectionOffset, ref ulong viewSize, uint inheritDisposition, SectionTypes allocationType, MemoryProtection win32Protect)
         {
             if (ntMapViewOfSection == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntMapViewOfSection(sectionHandle, processHandle, ref baseAddress, zeroBits, commitSize, sectionOffset, ref viewSize, inheritDisposition, allocationType, win32Protect);
         }
@@ -40,7 +40,7 @@ namespace StealthModule
         internal static NTSTATUS NtOpenFile(ref IntPtr fileHandle, FileAccessFlags desiredAccess, ref OBJECT_ATTRIBUTES objectAttributes, ref IO_STATUS_BLOCK ioStatusBlock, FileShareFlags shareAccess, FileOpenFlags openOptions)
         {
             if (ntOpenFile == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntOpenFile(ref fileHandle, desiredAccess, ref objectAttributes, ref ioStatusBlock, shareAccess, openOptions);
         }
@@ -48,7 +48,7 @@ namespace StealthModule
         internal static NTSTATUS NtAllocateVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, ref IntPtr regionSize, AllocationType allocationType, MemoryProtection protect)
         {
             if (ntAllocateVirtualMemory == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntAllocateVirtualMemory(processHandle, ref baseAddress, zeroBits, ref regionSize, allocationType, protect);
         }
@@ -56,7 +56,7 @@ namespace StealthModule
         internal static NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType)
         {
             if (ntFreeVirtualMemory == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntFreeVirtualMemory(processHandle, baseAddress, ref regionSize, freeType);
         }
@@ -64,7 +64,7 @@ namespace StealthModule
         internal static NTSTATUS NtWriteVirtualMemory(IntPtr processHandle, IntPtr baseAddress, IntPtr buffer, uint bufferLength, out uint bytesWritten)
         {
             if (ntWriteVirtualMemory == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntWriteVirtualMemory(processHandle, baseAddress, buffer, bufferLength, out bytesWritten);
         }
@@ -72,7 +72,7 @@ namespace StealthModule
         internal static NTSTATUS NtProtectVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, MemoryProtection newProtect, out MemoryProtection oldProtect)
         {
             if (ntProtectVirtualMemory == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntProtectVirtualMemory(processHandle, ref baseAddress, ref regionSize, newProtect, out oldProtect);
         }
@@ -80,7 +80,7 @@ namespace StealthModule
         internal static NTSTATUS NtQuerySystemInformation(SystemInformationClass systemInformationClass, IntPtr systemInformation, uint systemInformationLength, out uint returnLength)
         {
             if (ntQuerySystemInformation == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ntQuerySystemInformation(systemInformationClass, systemInformation, systemInformationLength, out returnLength);
         }
@@ -88,7 +88,7 @@ namespace StealthModule
         internal static NTSTATUS LdrLoadDll(string pathToFile, uint flags, IntPtr moduleFileName, out IntPtr moduleHandle)
         {
             if (ldrLoadDll == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ldrLoadDll(pathToFile, flags, moduleFileName, out moduleHandle);
         }
@@ -96,7 +96,7 @@ namespace StealthModule
         internal static NTSTATUS LdrUnloadDll(IntPtr moduleHandle)
         {
             if (ldrUnloadDll == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ldrUnloadDll(moduleHandle);
         }
@@ -104,7 +104,7 @@ namespace StealthModule
         internal static NTSTATUS LdrGetProcedureAddress(IntPtr moduleHandle, IntPtr functionName, IntPtr ordinal, out IntPtr functionAddress)
         {
             if (ldrGetProcedureAddress == null)
-                InitNtDll();
+                InitNtDLL();
 
             return ldrGetProcedureAddress(moduleHandle, functionName, ordinal, out functionAddress);
         }

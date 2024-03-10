@@ -19,7 +19,7 @@ namespace StealthModule
         private static LdrUnloadDll ldrUnloadDll;
         private static LdrGetProcedureAddress ldrGetProcedureAddress;
 
-        internal static void InitNtDll()
+        internal static void InitNtDLL()
         {
             if (ntdllInitialized)
                 return;
