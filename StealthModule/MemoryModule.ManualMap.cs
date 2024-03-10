@@ -87,15 +87,7 @@ namespace StealthModule
             {
                 // Only x64 use table-based exception handler
                 // https://stackoverflow.com/questions/28549775/seh-handlers-using-rtladdfunctiontable#comment45413114_28549775
-                var exTable = ntHeadersData.OptionalHeader.ExceptionTable;
-                if (exTable.Size > 0)
-                {
-                    // IMAGE_RUNTIME_FUNCTION_ENTRY : https://learn.microsoft.com/en-us/previous-versions/windows/embedded/ms879749(v=msdn.10)
-                    var entrySize = Pointer.Is64Bit ? 28 : 20;
-                    var status = NativeMethods.RtlAddFunctionTable(BaseAddress + exTable.VirtualAddress, (uint)(exTable.Size / entrySize), (ulong)BaseAddress);
-                    if (!NativeMethods.NT_SUCCESS(status))
-                        throw new ModuleException("Failed to add exception table: RtlAddFunctionTable NTSTATUS " + status);
-                }
+                RegisterExceptionTable(BaseAddress, ntHeadersData);
             }
 
             // get entry point of loaded library
@@ -115,6 +107,19 @@ namespace StealthModule
                     var exeEntryPtr = BaseAddress + ntHeadersData.OptionalHeader.AddressOfEntryPoint;
                     exeEntryPoint = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
                 }
+            }
+        }
+
+        private static void RegisterExceptionTable(Pointer baseAddress, ImageNtHeaders ntHeadersData)
+        {
+            var exceptionTable = ntHeadersData.OptionalHeader.ExceptionTable;
+            if (exceptionTable.Size > 0)
+            {
+                // IMAGE_RUNTIME_FUNCTION_ENTRY : https://learn.microsoft.com/en-us/previous-versions/windows/embedded/ms879749(v=msdn.10)
+                var entrySize = 28; // on x86 it is 20, but as RtlAddFucntionTable doesn't exist on x86 we don't need to consider it.
+                var status = NativeMethods.RtlAddFunctionTable(baseAddress + exceptionTable.VirtualAddress, (uint)(exceptionTable.Size / entrySize), (ulong)baseAddress);
+                if (!NativeMethods.NT_SUCCESS(status))
+                    throw new ModuleException("Failed to add exception table: RtlAddFunctionTable NTSTATUS " + status);
             }
         }
 
