@@ -10,9 +10,6 @@ namespace RunDll32
 {
     internal class Program
     {
-        [DllImport("kernel32.dll", CallingConvention = CallingConvention.Winapi)]
-        private static extern IntPtr GetConsoleWindow();
-
         static void Main(string[] args)
         {
             if (args.Length < 1)
@@ -68,14 +65,12 @@ namespace RunDll32
 
             try
             {
-                var hwnd = GetConsoleWindow();
                 var entry = Marshal.GetDelegateForFunctionPointer<DllEntryPoint>(entryPoint);
 
-                Console.WriteLine("[+] Console window handle is 0x" + (Pointer)hwnd);
                 Console.WriteLine($"[+] Command line is '{cmdLine}'");
 
                 Thread.Sleep(10000);
-                entry(hwnd, module.BaseAddress, cmdLine, 1);// 1 = SW_NORMAL
+                entry(IntPtr.Zero, module.BaseAddress, cmdLine, 1);// 1 = SW_NORMAL
 
                 Console.WriteLine("[+] The entry point call was successful.");
             }
