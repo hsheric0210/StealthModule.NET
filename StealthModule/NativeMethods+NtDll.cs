@@ -114,14 +114,14 @@ namespace StealthModule
 
             var kernel32 = new ExportResolver("ntdll.dll");
             kernel32.CacheAllExports(); // A bit overkill, but it is much more efficient.
-            rtlInitUnicodeString = (RtlInitUnicodeString)kernel32.GetExport("RtlInitUnicodeString", typeof(RtlInitUnicodeString));
-            rtlZeroMemory = (RtlZeroMemory)kernel32.GetExport("RtlZeroMemory", typeof(RtlZeroMemory));
-            ntCreateSection = (NtCreateSection)kernel32.GetExport("NtCreateSection", typeof(NtCreateSection));
-            ntMapViewOfSection = (NtMapViewOfSection)kernel32.GetExport("NtMapViewOfSection", typeof(NtMapViewOfSection));
-            ntOpenFile = (NtOpenFile)kernel32.GetExport("NtOpenFile", typeof(NtOpenFile));
-            ntProtectVirtualMemory = (NtProtectVirtualMemory)kernel32.GetExport("NtProtectVirtualMemory", typeof(NtProtectVirtualMemory));
-            ntWriteVirtualMemory = (NtWriteVirtualMemory)kernel32.GetExport("NtWriteVirtualMemory", typeof(NtWriteVirtualMemory));
-            ntAllocateVirtualMemory = (NtAllocateVirtualMemory)kernel32.GetExport("NtAllocateVirtualMemory", typeof(NtAllocateVirtualMemory));
+            rtlInitUnicodeString = kernel32.GetExport<RtlInitUnicodeString>("RtlInitUnicodeString");
+            rtlZeroMemory = kernel32.GetExport<RtlZeroMemory>("RtlZeroMemory");
+            ntCreateSection = kernel32.GetExport<NtCreateSection>("NtCreateSection");
+            ntMapViewOfSection = kernel32.GetExport<NtMapViewOfSection>("NtMapViewOfSection");
+            ntOpenFile = kernel32.GetExport<NtOpenFile>("NtOpenFile");
+            ntProtectVirtualMemory = kernel32.GetExport<NtProtectVirtualMemory>("NtProtectVirtualMemory");
+            ntWriteVirtualMemory = kernel32.GetExport<NtWriteVirtualMemory>("NtWriteVirtualMemory");
+            ntAllocateVirtualMemory = kernel32.GetExport<NtAllocateVirtualMemory>("NtAllocateVirtualMemory");
             ntdllInitialized = true;
         }
     }
