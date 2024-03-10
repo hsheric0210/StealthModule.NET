@@ -77,6 +77,14 @@ namespace StealthModule
             return ntProtectVirtualMemory(processHandle, ref baseAddress, ref regionSize, newProtect, out oldProtect);
         }
 
+        internal static NTSTATUS NtQuerySystemInformation(SystemInformationClass systemInformationClass, IntPtr systemInformation, uint systemInformationLength, out uint returnLength)
+        {
+            if (ntQuerySystemInformation == null)
+                InitNtDll();
+
+            return ntQuerySystemInformation(systemInformationClass, systemInformation, systemInformationLength, out returnLength);
+        }
+
         internal static NTSTATUS LdrLoadDll(string pathToFile, uint flags, IntPtr moduleFileName, out IntPtr moduleHandle)
         {
             if (ldrLoadDll == null)
