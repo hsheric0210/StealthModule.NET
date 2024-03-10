@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using static StealthModule.NativeMethods.Delegates;
+using static StealthModule.NativeMethods.NtDllDelegates;
 
 namespace StealthModule
 {
     internal partial class NativeMethods
     {
-        internal static class Delegates
+        internal static class NtDllDelegates
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void RtlInitUnicodeString(ref UNICODE_STRING destinationString, [MarshalAs(UnmanagedType.LPWStr)] string sourceString);
