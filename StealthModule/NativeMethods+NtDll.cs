@@ -24,16 +24,16 @@ namespace StealthModule
             internal delegate NTSTATUS NtOpenFile(ref IntPtr fileHandle, FileAccessFlags desiredAccess, ref OBJECT_ATTRIBUTES objectAttributes, ref IO_STATUS_BLOCK ioStatusBlock, FileShareFlags shareAccess, FileOpenFlags openOptions);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate NTSTATUS NtProtectVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, MemoryProtection newProtect, out MemoryProtection oldProtect);
+            internal delegate NTSTATUS NtAllocateVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, ref IntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS NtWriteVirtualMemory(IntPtr processHandle, IntPtr baseAddress, IntPtr buffer, uint bufferLength, out uint bytesWritten);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate NTSTATUS NtAllocateVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, ref IntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
-
-            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType);
+            internal delegate NTSTATUS NtProtectVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, MemoryProtection newProtect, out MemoryProtection oldProtect);
         }
 
         static bool ntdllInitialized;
@@ -87,12 +87,20 @@ namespace StealthModule
             return ntOpenFile(ref fileHandle, desiredAccess, ref objectAttributes, ref ioStatusBlock, shareAccess, openOptions);
         }
 
-        internal static NTSTATUS NtProtectVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, MemoryProtection newProtect, out MemoryProtection oldProtect)
+        internal static NTSTATUS NtAllocateVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, ref IntPtr regionSize, AllocationType allocationType, MemoryProtection protect)
         {
-            if (ntProtectVirtualMemory == null)
+            if (ntAllocateVirtualMemory == null)
                 InitNtDll();
 
-            return ntProtectVirtualMemory(processHandle, ref baseAddress, ref regionSize, newProtect, out oldProtect);
+            return ntAllocateVirtualMemory(processHandle, ref baseAddress, zeroBits, ref regionSize, allocationType, protect);
+        }
+
+        internal static NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType)
+        {
+            if (ntFreeVirtualMemory == null)
+                InitNtDll();
+
+            return ntFreeVirtualMemory(processHandle, baseAddress, ref regionSize, freeType);
         }
 
         internal static NTSTATUS NtWriteVirtualMemory(IntPtr processHandle, IntPtr baseAddress, IntPtr buffer, uint bufferLength, out uint bytesWritten)
@@ -103,20 +111,12 @@ namespace StealthModule
             return ntWriteVirtualMemory(processHandle, baseAddress, buffer, bufferLength, out bytesWritten);
         }
 
-        internal static NTSTATUS NtAllocateVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, ref IntPtr regionSize, AllocationType allocationType, MemoryProtection protect)
+        internal static NTSTATUS NtProtectVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, MemoryProtection newProtect, out MemoryProtection oldProtect)
         {
-            if (ntAllocateVirtualMemory == null)
+            if (ntProtectVirtualMemory == null)
                 InitNtDll();
 
-            return ntAllocateVirtualMemory(processHandle, ref baseAddress, zeroBits, ref regionSize, allocationType, protect);
-        }
-
-        internal static NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType)
-        {
-            if (ntFreeVirtualMemory == null)
-                InitNtDll();
-
-            return ntFreeVirtualMemory(processHandle, ref baseAddress, ref regionSize, freeType);
+            return ntProtectVirtualMemory(processHandle, ref baseAddress, ref regionSize, newProtect, out oldProtect);
         }
 
         internal static void InitNtDll()
@@ -132,9 +132,9 @@ namespace StealthModule
             ntMapViewOfSection = kernel32.GetExport<NtMapViewOfSection>("NtMapViewOfSection");
             ntOpenFile = kernel32.GetExport<NtOpenFile>("NtOpenFile");
             ntAllocateVirtualMemory = kernel32.GetExport<NtAllocateVirtualMemory>("NtAllocateVirtualMemory");
+            ntFreeVirtualMemory = kernel32.GetExport<NtFreeVirtualMemory>("NtFreeVirtualMemory");
             ntWriteVirtualMemory = kernel32.GetExport<NtWriteVirtualMemory>("NtWriteVirtualMemory");
             ntProtectVirtualMemory = kernel32.GetExport<NtProtectVirtualMemory>("NtProtectVirtualMemory");
-            ntFreeVirtualMemory = kernel32.GetExport<NtFreeVirtualMemory>("NtFreeVirtualMemory");
             ntdllInitialized = true;
         }
     }
