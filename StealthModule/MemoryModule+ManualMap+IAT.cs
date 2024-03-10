@@ -15,7 +15,14 @@ namespace StealthModule
                 if (importDescriptor.Name == 0)
                     break;
 
-                var handle = NativeMethods.LoadLibrary(moduleBaseAddress + importDescriptor.Name);
+                var dllName = Marshal.PtrToStringAnsi(moduleBaseAddress + importDescriptor.Name);
+
+                // todo: api set dll support
+
+                var handle = ExportResolver.GetModuleHandle(dllName);
+                if (handle == Pointer.Zero)
+                    NativeMethods.LoadLibrary(dllName);
+
                 if (handle.IsInvalidHandle())
                 {
                     foreach (var m in importModules)
@@ -46,11 +53,16 @@ namespace StealthModule
                     if (readThunkRef == Pointer.Zero)
                         break;
 
-                    writeFuncRef = NativeMethods.GetProcAddress(
-                        handle,
-                        NativeMethods.IMAGE_SNAP_BY_ORDINAL(readThunkRef)
-                            ? NativeMethods.IMAGE_ORDINAL(readThunkRef)
-                            : (moduleBaseAddress + readThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name));
+                    if (NativeMethods.IMAGE_SNAP_BY_ORDINAL(readThunkRef))
+                    {
+                        // import by ordinal
+                        writeFuncRef = NativeMethods.GetProcAddress(handle, unchecked((ushort)(uint)NativeMethods.IMAGE_ORDINAL(readThunkRef)));
+                    }
+                    else
+                    {
+                        // import by name
+                        writeFuncRef = NativeMethods.GetProcAddress(handle, Marshal.PtrToStringAnsi(moduleBaseAddress + readThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name));
+                    }
 
                     if (writeFuncRef == Pointer.Zero)
                         throw new ModuleException("Can't get adress for imported function");
