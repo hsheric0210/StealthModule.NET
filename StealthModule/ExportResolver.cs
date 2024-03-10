@@ -74,26 +74,38 @@ namespace StealthModule
             return ordinalMapping[functionOrdinal] = address;
         }
 
+        public Pointer GetExportOrThrow(string functionName)
+        {
+            var address = GetExport(functionName);
+            return address.IsInvalidHandle() ? throw new ModuleException("No export found: " + functionName) : address;
+        }
+
+        public Pointer GetExportOrThrow(int functionOrdinal)
+        {
+            var address = GetExport(functionOrdinal);
+            return address.IsInvalidHandle() ? throw new ModuleException("No export found: ordinal #" + functionOrdinal) : address;
+        }
+
         // Utility overloads
 
         public Delegate GetExport(string functionName, Type delegateType)
-            => Marshal.GetDelegateForFunctionPointer(GetExport(functionName), delegateType);
+            => Marshal.GetDelegateForFunctionPointer(GetExportOrThrow(functionName), delegateType);
 
         public Delegate GetExport(int functionOrdinal, Type delegateType)
-            => Marshal.GetDelegateForFunctionPointer(GetExport(functionOrdinal), delegateType);
+            => Marshal.GetDelegateForFunctionPointer(GetExportOrThrow(functionOrdinal), delegateType);
 
         public TDelegate GetExport<TDelegate>(string functionName) where TDelegate : class
 #if NET451_OR_GREATER
-            => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExport(functionName));
+            => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExportOrThrow(functionName));
 #else
-            => Marshal.GetDelegateForFunctionPointer(GetExport(functionName), typeof(TDelegate)) as TDelegate;
+            => Marshal.GetDelegateForFunctionPointer(GetExportOrThrow(functionName), typeof(TDelegate)) as TDelegate;
 #endif
 
         public TDelegate GetExport<TDelegate>(int functionOrdinal) where TDelegate : class
 #if NET451_OR_GREATER
-            => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExport(functionOrdinal));
+            => Marshal.GetDelegateForFunctionPointer<TDelegate>(GetExportOrThrow(functionOrdinal));
 #else
-            => Marshal.GetDelegateForFunctionPointer(GetExport(functionOrdinal), typeof(TDelegate)) as TDelegate;
+            => Marshal.GetDelegateForFunctionPointer(GetExportOrThrow(functionOrdinal), typeof(TDelegate)) as TDelegate;
 #endif
 
         // Export table walk
@@ -137,6 +149,18 @@ namespace StealthModule
                 throw new ModuleException("Module not found: " + moduleName);
 
             return Pointer.Zero;
+        }
+
+        public static string GetModuleFullName(string moduleName)
+        {
+            var nameLower = moduleName.ToLower();
+            foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
+            {
+                if (module.FileName.ToLower().EndsWith(nameLower))
+                    return module.FileName;
+            }
+
+            return null;
         }
 
         /// <summary>

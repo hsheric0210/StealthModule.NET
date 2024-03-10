@@ -22,7 +22,7 @@ namespace StealthModule
             if (ntHeadersData.FileHeader.Machine != GetMachineType())
                 throw new BadImageFormatException("Machine type doesn't fit (i386 vs. AMD64)");
             if ((ntHeadersData.OptionalHeader.SectionAlignment & 1) > 0)
-                throw new BadImageFormatException("Wrong section alignment"); //Only support multiple of 2
+                throw new BadImageFormatException("Wrong section alignment header value: " + ntHeadersData.OptionalHeader.SectionAlignment); //Only support multiple of 2
 
             IsDll = (ntHeadersData.FileHeader.Characteristics & NativeMagics.IMAGE_FILE_DLL) != 0;
 
@@ -40,7 +40,7 @@ namespace StealthModule
             var alignedImageSize = AlignValueUp(ntHeadersData.OptionalHeader.SizeOfImage, pageSize);
             var alignedLastSection = AlignValueUp(lastSectionEnd, pageSize);
             if (alignedImageSize != alignedLastSection)
-                throw new BadImageFormatException("Wrong section alignment");
+                throw new BadImageFormatException("Wrong section alignment: imageSize=" + (Pointer)alignedImageSize + ", lastSectionEnd=" + (Pointer)alignedLastSection);
 
             var desiredImageBase = Is64BitProcess ? ((Pointer)unchecked((long)ntHeadersData.OptionalHeader.ImageBaseLong)) : ((Pointer)unchecked((int)(ntHeadersData.OptionalHeader.ImageBaseLong >> 32)));
             var stomping = stompTargetAddress != Pointer.Zero;
@@ -81,6 +81,22 @@ namespace StealthModule
 
             // TLS callbacks are executed BEFORE the main loading
             ExecuteTLS(ref ntHeadersData, BaseAddress);
+
+            // exception support
+            if (Pointer.Is64Bit)
+            {
+                // Only x64 use table-based exception handler
+                // https://stackoverflow.com/questions/28549775/seh-handlers-using-rtladdfunctiontable#comment45413114_28549775
+                var exTable = ntHeadersData.OptionalHeader.ExceptionTable;
+                if (exTable.Size > 0)
+                {
+                    // IMAGE_RUNTIME_FUNCTION_ENTRY : https://learn.microsoft.com/en-us/previous-versions/windows/embedded/ms879749(v=msdn.10)
+                    var entrySize = Pointer.Is64Bit ? 28 : 20;
+                    var status = NativeMethods.RtlAddFunctionTable(BaseAddress + exTable.VirtualAddress, (uint)(exTable.Size / entrySize), (ulong)BaseAddress);
+                    if (!NativeMethods.NT_SUCCESS(status))
+                        throw new ModuleException("Failed to add exception table: RtlAddFunctionTable NTSTATUS " + status);
+                }
+            }
 
             // get entry point of loaded library
             if (ntHeadersData.OptionalHeader.AddressOfEntryPoint != 0)

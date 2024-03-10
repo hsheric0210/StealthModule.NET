@@ -20,12 +20,23 @@ namespace StealthModule
             rtlZeroMemory(destination, length);
         }
 
-        internal static void RtlGetVersion(out OSVersionInfoEx versionInformation)
+        internal static NTSTATUS RtlGetVersion(out OSVersionInfoEx versionInformation)
         {
             if (rtlGetVersion == null)
                 InitNtDLL();
 
-            rtlGetVersion(out versionInformation);
+            return rtlGetVersion(out versionInformation);
+        }
+
+        internal static NTSTATUS RtlAddFunctionTable(IntPtr functionTable, uint entryCount, ulong baseAddress)
+        {
+            if (!Pointer.Is64Bit)
+                throw new NotImplementedException("This function is not available on x86");
+
+            if (rtlAddFunctionTable == null)
+                InitNtDLL();
+
+            return rtlAddFunctionTable(functionTable, entryCount, baseAddress);
         }
 
         internal static NTSTATUS NtCreateSection(ref IntPtr sectionHandle, AccessMask desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes AllocationAttributes, IntPtr fileHandle)

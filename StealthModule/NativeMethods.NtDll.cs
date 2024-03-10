@@ -8,6 +8,7 @@ namespace StealthModule
         private static RtlInitUnicodeString rtlInitUnicodeString;
         private static RtlZeroMemory rtlZeroMemory;
         private static RtlGetVersion rtlGetVersion;
+        private static RtlAddFunctionTable rtlAddFunctionTable;
         private static NtCreateSection ntCreateSection;
         private static NtMapViewOfSection ntMapViewOfSection;
         private static NtOpenFile ntOpenFile;
@@ -43,6 +44,11 @@ namespace StealthModule
             ldrLoadDll = kernel32.GetExport<LdrLoadDll>("LdrLoadDll");
             ldrUnloadDll = kernel32.GetExport<LdrUnloadDll>("LdrUnloadDll");
             ldrGetProcedureAddress = kernel32.GetExport<LdrGetProcedureAddress>("LdrGetProcedureAddress");
+
+            // Functions that only exist on x64
+            if (Pointer.Is64Bit)
+                rtlAddFunctionTable = kernel32.GetExport<RtlAddFunctionTable>("RtlAddFunctionTable");
+
             ntdllInitialized = true;
         }
     }

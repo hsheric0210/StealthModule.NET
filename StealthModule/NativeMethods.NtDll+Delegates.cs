@@ -17,6 +17,9 @@ namespace StealthModule
             internal delegate NTSTATUS RtlGetVersion(out OSVersionInfoEx VersionInformation);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS RtlAddFunctionTable(IntPtr functionTable, uint entryCount, ulong baseAddress);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS NtCreateSection(ref IntPtr sectionHandle, uint desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes allocationAttributes, IntPtr fileHandle);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
