@@ -152,7 +152,7 @@ namespace StealthModule
 
         public static bool operator !=(Pointer value1, Pointer value2) => value1.value != value2.value;
 
-        public override string ToString() => Is64Bit ? ((ulong)value).ToString("X16") : ((ulong)value).ToString("X8");
+        public override string ToString() => Is64Bit ? ((ulong)value).ToString("X16") : ((uint)value).ToString("X8");
 
         public override bool Equals(object obj) => obj is Pointer other && value == other.value;
 
