@@ -74,4 +74,32 @@ namespace StealthModule
         public IntPtr ActiveProcessorsAffinityMask;
         public uint NumberOfProcessors;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct OSVersionInfoEx
+    {
+        public uint OSVersionInfoSize;
+        public uint MajorVersion;
+        public uint MinorVersion;
+        public uint BuildNumber;
+        public uint PlatformId;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string CSDVersion;
+        public ushort ServicePackMajor;
+        public ushort ServicePackMinor;
+        public ushort SuiteMask;
+        public byte ProductType;
+        public byte Reserved;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct ProcessBasicInformation
+    {
+        public IntPtr ExitStatus;
+        public IntPtr PebBaseAddress;
+        public IntPtr AffinityMask;
+        public IntPtr BasePriority;
+        public UIntPtr UniqueProcessId;
+        public int InheritedFromUniqueProcessId;
+    }
 }

@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
@@ -6,7 +8,13 @@ namespace StealthModule
     {
         private static Pointer[] BuildImportTable(ref ImageNtHeaders ntHeadersData, Pointer moduleBaseAddress)
         {
-            var importModules = new System.Collections.Generic.List<Pointer>();
+            NativeMethods.RtlGetVersion(out var osVersion);
+
+            var apiSetDict = new Dictionary<string, string>();
+            if (osVersion.MajorVersion >= 10)
+                apiSetDict = NativeMethods.GetApiSetMapping();
+
+            var importModules = new List<Pointer>();
             var numEntries = ntHeadersData.OptionalHeader.ImportTable.Size / NativeSizes.IMAGE_IMPORT_DESCRIPTOR;
             var importDescriptorAddress = moduleBaseAddress + ntHeadersData.OptionalHeader.ImportTable.VirtualAddress;
             for (uint i = 0; i != numEntries; i++, importDescriptorAddress += NativeSizes.IMAGE_IMPORT_DESCRIPTOR)
@@ -17,11 +25,15 @@ namespace StealthModule
 
                 var dllName = Marshal.PtrToStringAnsi(moduleBaseAddress + importDescriptor.Name);
 
-                // todo: api set dll support
+                if (osVersion.MajorVersion >= 10 && (dllName.StartsWith("api-") || dllName.StartsWith("ext-")) && apiSetDict.TryGetValue(dllName, out var apiSetName) && apiSetName.Length > 0)
+                {
+                    // Not all API set DLL's have a registered host mapping
+                    dllName = apiSetName;
+                }
 
                 var handle = ExportResolver.GetModuleHandle(dllName);
-                if (handle == Pointer.Zero)
-                    NativeMethods.LoadLibrary(dllName);
+                if (handle.IsInvalidHandle())
+                    handle = NativeMethods.LoadLibrary(dllName);
 
                 if (handle.IsInvalidHandle())
                 {

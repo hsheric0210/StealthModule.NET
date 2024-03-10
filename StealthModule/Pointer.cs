@@ -142,7 +142,9 @@ namespace StealthModule
 
         public bool IsInvalidHandle()
             => value == IntPtr.Zero
-            || value == (Is64Bit ? (IntPtr)(long)-1 : (IntPtr)(-1));
+            || value == (Is64Bit
+                ? (IntPtr)(long)-1
+                : (IntPtr)(-1));
 
         // Comparison operator
 

@@ -175,4 +175,9 @@ namespace StealthModule
         FILE_OPEN_FOR_BACKUP_INTENT = 1 << 14,
         FILE_NO_COMPRESSION = 1 << 15
     }
+
+    internal enum ProcessInfoClass : uint
+    {
+        ProcessBasicInformation = 0,
+    };
 }

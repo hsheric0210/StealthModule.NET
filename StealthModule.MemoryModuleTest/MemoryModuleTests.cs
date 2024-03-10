@@ -16,11 +16,11 @@ namespace StealthModule.MemoryModuleTest
         }
 
         [TestMethod]
-        public void User32()
+        public void Shell32()
         {
-            var dllBytes = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, "user32.dll"));
+            var dllBytes = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, "shell32.dll"));
             var mapped = new MemoryModule(dllBytes);
-            _ = mapped.Exports["MessageBoxW"];
+            _ = mapped.Exports["SHFree"];
         }
     }
 }

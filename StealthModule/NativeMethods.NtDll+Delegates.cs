@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    internal partial class NativeMethods
+    internal static partial class NativeMethods
     {
         internal static class NtDllDelegates
         {
@@ -12,6 +12,9 @@ namespace StealthModule
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void RtlZeroMemory(IntPtr destination, int length);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS RtlGetVersion(out OSVersionInfoEx VersionInformation);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS NtCreateSection(ref IntPtr sectionHandle, uint desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes allocationAttributes, IntPtr fileHandle);
@@ -36,6 +39,9 @@ namespace StealthModule
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS NtQuerySystemInformation(SystemInformationClass systemInformationClass, IntPtr systemInformation, uint systemInformationLength, out uint returnLength);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass, IntPtr processInformation, int processInformationLength, out uint returnLength);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UNICODE_STRING moduleFileName, out IntPtr moduleHandle);

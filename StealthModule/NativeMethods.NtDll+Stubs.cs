@@ -2,7 +2,7 @@
 
 namespace StealthModule
 {
-    internal partial class NativeMethods
+    internal static partial class NativeMethods
     {
         internal static void RtlInitUnicodeString(ref UNICODE_STRING destinationString, string sourceString)
         {
@@ -18,6 +18,14 @@ namespace StealthModule
                 InitNtDLL();
 
             rtlZeroMemory(destination, length);
+        }
+
+        internal static void RtlGetVersion(out OSVersionInfoEx versionInformation)
+        {
+            if (rtlGetVersion == null)
+                InitNtDLL();
+
+            rtlGetVersion(out versionInformation);
         }
 
         internal static NTSTATUS NtCreateSection(ref IntPtr sectionHandle, AccessMask desiredAccess, IntPtr objectAttributes, ref ulong maximumSize, MemoryProtection sectionPageProtection, SectionTypes AllocationAttributes, IntPtr fileHandle)
@@ -82,6 +90,14 @@ namespace StealthModule
                 InitNtDLL();
 
             return ntQuerySystemInformation(systemInformationClass, systemInformation, systemInformationLength, out returnLength);
+        }
+
+        internal static NTSTATUS NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass, IntPtr processInformation, int processInformationLength, out uint returnLength)
+        {
+            if (ntQueryInformationProcess == null)
+                InitNtDLL();
+
+            return ntQueryInformationProcess(processHandle, processInformationClass, processInformation, processInformationLength, out returnLength);
         }
 
         internal static NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UNICODE_STRING moduleFileName, out IntPtr moduleHandle)
