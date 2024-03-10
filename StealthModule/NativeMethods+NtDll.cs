@@ -31,6 +31,9 @@ namespace StealthModule
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS NtAllocateVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, IntPtr zeroBits, ref IntPtr regionSize, AllocationType allocationType, MemoryProtection protect);
+
+            [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+            internal delegate NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType);
         }
 
         static bool ntdllInitialized;
@@ -42,6 +45,7 @@ namespace StealthModule
         private static NtProtectVirtualMemory ntProtectVirtualMemory;
         private static NtWriteVirtualMemory ntWriteVirtualMemory;
         private static NtAllocateVirtualMemory ntAllocateVirtualMemory;
+        private static NtFreeVirtualMemory ntFreeVirtualMemory;
 
         internal static void RtlInitUnicodeString(ref UNICODE_STRING destinationString, string sourceString)
         {
@@ -107,6 +111,14 @@ namespace StealthModule
             return ntAllocateVirtualMemory(processHandle, ref baseAddress, zeroBits, ref regionSize, allocationType, protect);
         }
 
+        internal static NTSTATUS NtFreeVirtualMemory(IntPtr processHandle, ref IntPtr baseAddress, ref IntPtr regionSize, AllocationType freeType)
+        {
+            if (ntFreeVirtualMemory == null)
+                InitNtDll();
+
+            return ntFreeVirtualMemory(processHandle, ref baseAddress, ref regionSize, freeType);
+        }
+
         internal static void InitNtDll()
         {
             if (ntdllInitialized)
@@ -119,9 +131,10 @@ namespace StealthModule
             ntCreateSection = kernel32.GetExport<NtCreateSection>("NtCreateSection");
             ntMapViewOfSection = kernel32.GetExport<NtMapViewOfSection>("NtMapViewOfSection");
             ntOpenFile = kernel32.GetExport<NtOpenFile>("NtOpenFile");
-            ntProtectVirtualMemory = kernel32.GetExport<NtProtectVirtualMemory>("NtProtectVirtualMemory");
-            ntWriteVirtualMemory = kernel32.GetExport<NtWriteVirtualMemory>("NtWriteVirtualMemory");
             ntAllocateVirtualMemory = kernel32.GetExport<NtAllocateVirtualMemory>("NtAllocateVirtualMemory");
+            ntWriteVirtualMemory = kernel32.GetExport<NtWriteVirtualMemory>("NtWriteVirtualMemory");
+            ntProtectVirtualMemory = kernel32.GetExport<NtProtectVirtualMemory>("NtProtectVirtualMemory");
+            ntFreeVirtualMemory = kernel32.GetExport<NtFreeVirtualMemory>("NtFreeVirtualMemory");
             ntdllInitialized = true;
         }
     }
