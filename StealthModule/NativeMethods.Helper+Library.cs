@@ -21,7 +21,7 @@ namespace StealthModule
 
         internal static Pointer GetProcAddress(Pointer handle, string functionName)
         {
-            var functionNameAnsiBuffer = Marshal.StringToCoTaskMemAnsi(functionName);
+            var functionNameAnsiBuffer = Marshal.StringToHGlobalAnsi(functionName);
             var functionNameAnsi = new ANSI_STRING
             {
                 Length = (ushort)functionName.Length,
@@ -42,7 +42,7 @@ namespace StealthModule
             finally
             {
                 Marshal.FreeHGlobal(functionNameBuffer);
-                Marshal.FreeCoTaskMem(functionNameAnsiBuffer);
+                Marshal.FreeHGlobal(functionNameAnsiBuffer);
             }
         }
 

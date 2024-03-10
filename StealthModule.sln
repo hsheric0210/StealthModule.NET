@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RunDll32", "Example\RunDll3
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExportLister", "Example\ExportLister\ExportLister.csproj", "{5BC0759A-D504-4BF4-BC9F-17DC5FBEED63}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StealthModule.MemoryModuleTest", "StealthModule.MemoryModuleTest\StealthModule.MemoryModuleTest.csproj", "{E47FA42B-1B2E-49C7-A4D8-3945F151EBD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StealthModule.Test", "StealthModule.Test\StealthModule.Test.csproj", "{E47FA42B-1B2E-49C7-A4D8-3945F151EBD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
