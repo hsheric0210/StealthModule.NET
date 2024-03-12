@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace StealthModule
 {
-    public partial class MemoryModule
+    public partial class LocalMemoryModule
     {
         /// <summary>
         /// Returns a delegate for a function inside the DLL.

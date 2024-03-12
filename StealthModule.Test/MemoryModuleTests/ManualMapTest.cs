@@ -63,7 +63,7 @@ namespace StealthModule.MemoryModuleTest.MemoryModuleTests
         {
             var dllBytes = File.ReadAllBytes(Path.Combine(Environment.SystemDirectory, dllName));
 
-            var mapped = new MemoryModule(dllBytes);
+            var mapped = new LocalMemoryModule(dllBytes);
             Logger.LogMessage("The dll {0} successfully manual-mapped to address {1}", dllName, mapped.BaseAddress);
 
             mapped.Dispose();

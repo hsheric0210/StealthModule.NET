@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using StealthModule.ManualMap;
 
 namespace StealthModule
 {
-    public partial class MemoryModuleBase : IDisposable
+    public abstract partial class MemoryModuleBase : IDisposable
     {
         public bool Disposed { get; private set; }
 
@@ -18,6 +19,9 @@ namespace StealthModule
         private DllEntryDelegate dllEntryPoint;
         private ExeEntryDelegate exeEntryPoint;
         private bool isRelocated;
+
+        protected IMemoryOperator memoryOp;
+        protected IFunctionCaller functionCall;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         private delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
@@ -47,46 +51,56 @@ namespace StealthModule
 
         public void Close() => ((IDisposable)this).Dispose();
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             if (Disposed)
                 return;
 
             if (disposing)
             {
-                if (wasDllMainSuccessful && dllEntryPoint != null)
-                {
-                    dllEntryPoint.Invoke(BaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+                UninitializeDll();
 
-                    wasDllMainSuccessful = false;
-                }
-
-                if (importModuleBaseAddresses != null)
-                {
-                    foreach (var m in importModuleBaseAddresses)
-                    {
-                        if (!m.IsInvalidHandle())
-                            NativeMethods.LdrUnloadDll(m);
-                    }
-
-                    importModuleBaseAddresses = null;
-                }
+                UnloadImports();
             }
 
             if (BaseAddress != Pointer.Zero)
             {
-                NativeMethods.FreeVirtualMemory(BaseAddress, IntPtr.Zero, AllocationType.RELEASE);
+                memoryOp.Free(BaseAddress, IntPtr.Zero, AllocationType.RELEASE);
                 BaseAddress = Pointer.Zero;
                 ntHeadersAddress = Pointer.Zero;
             }
 
             Disposed = true;
+        }
+
+        protected virtual void UninitializeDll()
+        {
+            if (wasDllMainSuccessful && dllEntryPoint != null)
+            {
+                dllEntryPoint.Invoke(BaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
+
+                wasDllMainSuccessful = false;
+            }
+        }
+
+        protected virtual void UnloadImports()
+        {
+            if (importModuleBaseAddresses != null)
+            {
+                foreach (var m in importModuleBaseAddresses)
+                {
+                    if (!m.IsInvalidHandle())
+                        functionCall.FreeLibrary(m);
+                }
+
+                importModuleBaseAddresses = null;
+            }
         }
     }
 }

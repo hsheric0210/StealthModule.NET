@@ -17,7 +17,7 @@ namespace ExportLister
             var dllName = args[0];
             var moduleHandle = ExportResolver.GetModuleHandle(dllName);
             ExportResolver resolver;
-            MemoryModule mapped = null;
+            LocalMemoryModuleNoUninitialize mapped = null;
             if (moduleHandle == Pointer.Zero)
             {
                 if (!File.Exists(dllName))
@@ -31,7 +31,7 @@ namespace ExportLister
                 var bytes = File.ReadAllBytes(dllName);
                 Console.WriteLine($"[+] Read {bytes.Length} bytes from the disk.");
 
-                mapped = new MemoryModule(bytes);
+                mapped = new LocalMemoryModuleNoUninitialize(bytes);
                 moduleHandle = mapped.BaseAddress;
                 resolver = mapped.Exports;
 
@@ -52,7 +52,7 @@ namespace ExportLister
             if (mapped != null)
             {
                 Console.WriteLine("[+] Disposing the manual mapped DLL.");
-                mapped.Dispose(true); // prevent DllMain with DLL_PROCSES_DETACH call because some DLLs might crash from this stage
+                mapped.Dispose();
             }
         }
 

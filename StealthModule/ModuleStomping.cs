@@ -9,7 +9,7 @@ namespace StealthModule
     public class ModuleStomping : IModule
     {
         private FileMapping decoyModule;
-        private MemoryModule realModule;
+        private MemoryStompingModule realModule;
 
         public Pointer BaseAddress { get; private set; }
 
@@ -49,7 +49,7 @@ namespace StealthModule
 
             NativeMethods.RtlZeroMemory(decoyBase, (int)decoyPeSize);
 
-            realModule = new MemoryModule(data, decoyBase);
+            realModule = new MemoryStompingModule(data, decoyBase);
             BaseAddress = realModule.BaseAddress;
             Exports = realModule.Exports;
         }

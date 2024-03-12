@@ -7,9 +7,6 @@ namespace StealthModule
 {
     public partial class MemoryModuleBase
     {
-        private IMemoryOperator memoryOp;
-        private IFunctionCaller functionCall;
-
         private ImageDosHeader dosHeader;
         private ImageNtHeaders ntHeaders;
 

@@ -10,6 +10,8 @@ namespace StealthModule.ManualMap
 
         Pointer LoadLibrary(string dllName);
 
+        bool FreeLibrary(Pointer dllHandle);
+
         Pointer GetProcAddress(Pointer dllHandle, string functionName);
 
         Pointer GetProcAddress(Pointer dllHandle, ushort functionOrdinal);
