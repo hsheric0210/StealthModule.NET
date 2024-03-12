@@ -70,16 +70,16 @@ namespace StealthModule
 
             // get entry point of loaded library
             if (ntHeaders.OptionalHeader.AddressOfEntryPoint != 0)
-                InitializeEntryPoint(functionCall, ref ntHeaders);
+                InitializeEntryPoint();
         }
 
-        protected virtual void InitializeEntryPoint(IFunctionCaller caller, ref ImageNtHeaders ntHeaders)
+        protected virtual void InitializeEntryPoint()
         {
             if (IsDll)
             {
                 // notify library about attaching to process
                 var dllEntryPtr = BaseAddress + ntHeaders.OptionalHeader.AddressOfEntryPoint;
-                wasDllMainSuccessful = caller.CallDllEntry(dllEntryPtr, BaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
+                wasDllMainSuccessful = functionCall.CallDllEntry(dllEntryPtr, BaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
                 if (!wasDllMainSuccessful)
                     throw new ModuleException("DllMain returned false");
             }

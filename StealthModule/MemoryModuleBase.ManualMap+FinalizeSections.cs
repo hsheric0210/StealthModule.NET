@@ -97,7 +97,7 @@ namespace StealthModule
                     size = ntHeaders.OptionalHeader.SizeOfUninitializedData;
             }
 
-            return Is64BitProcess ? (Pointer)size : (Pointer)size;
+            return (Pointer)size;
         }
 
         // Protection flags for memory pages (Executable, Readable, Writeable)

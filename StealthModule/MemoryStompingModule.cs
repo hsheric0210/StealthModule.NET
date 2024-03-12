@@ -28,5 +28,9 @@ namespace StealthModule
         }
 
         protected override Pointer AllocateBaseMemory(Pointer desiredAddress, uint regionSize) => targetAddress; // no additional memory allocation
+
+        protected override void ExecuteTLS() { }
+
+        protected override void InitializeEntryPoint() { }
     }
 }

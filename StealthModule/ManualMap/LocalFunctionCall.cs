@@ -27,7 +27,7 @@ namespace StealthModule.ManualMap
         {
             var handle = ExportResolver.GetModuleHandle(dllName);
 
-            if (handle == Pointer.Zero)
+            if (handle.IsInvalidHandle())
                 handle = NativeMethods.LoadLibrary(dllName);
 
             return handle;
