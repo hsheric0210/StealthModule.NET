@@ -14,8 +14,6 @@ namespace StealthModule
             if (osVersion.MajorVersion >= 10)
             {
                 apiSetDict = NativeMethods.GetApiSetMapping();
-                foreach (var entry in apiSetDict)
-                    Console.WriteLine($"ApiSet '{entry.Key}' -> '{entry.Value}'");
             }
 
             var importModules = new List<Pointer>();
@@ -116,13 +114,8 @@ namespace StealthModule
                     var ordinal = unchecked((ushort)(uint)NativeMethods.IMAGE_ORDINAL(readThunkRef));
                     writeFuncRef = NativeMethods.GetProcAddress(handle, ordinal);
 
-                    if (writeFuncRef == Pointer.Zero)
-                    {
-                        if (ignoreNotFound)
-                            Console.WriteLine($"Warning: Import not found: {dllName}!#{ordinal}");
-                        else
-                            throw new ModuleException("Can't get adress for imported function " + dllName + "!#" + ordinal);
-                    }
+                    if (writeFuncRef == Pointer.Zero && !ignoreNotFound)
+                        throw new ModuleException("Can't get adress for imported function " + dllName + "!#" + ordinal);
                 }
                 else
                 {
@@ -130,14 +123,8 @@ namespace StealthModule
                     var name = Marshal.PtrToStringAnsi(moduleBaseAddress + readThunkRef + NativeOffsets.IMAGE_IMPORT_BY_NAME_Name);
                     writeFuncRef = NativeMethods.GetProcAddress(handle, name);
 
-                    if (writeFuncRef == Pointer.Zero)
-                    {
-                        if (ignoreNotFound)
-                            Console.WriteLine($"Warning: Import not found: {dllName}!{name}");
-                        else
-                            throw new ModuleException("Can't get adress for imported function " + dllName + "!" + name);
-                    }
-
+                    if (writeFuncRef == Pointer.Zero && !ignoreNotFound)
+                        throw new ModuleException("Can't get adress for imported function " + dllName + "!" + name);
                 }
 
                 functionRef.Write(writeFuncRef);
