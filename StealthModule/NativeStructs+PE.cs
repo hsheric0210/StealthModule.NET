@@ -161,6 +161,25 @@ namespace StealthModule
     }
 
     /// <summary>
+    /// IMAGE_DELAYLOAD_DESCRIPTOR
+    /// </summary>
+    /// <remarks>
+    /// available @ winnt.h
+    /// </remarks>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ImageDelayImportDescriptor
+    {
+        public uint AllAttributes;
+        public uint DllNameRVA;
+        public uint ModuleHandleRVA;
+        public uint ImportAddressTableRVA;
+        public uint ImportNameTableRVA;
+        public uint BoundImportAddressTableRVA;
+        public uint UnloadInformationTableRVA;
+        public uint TimeDateStamp;
+    }
+
+    /// <summary>
     /// IMAGE_EXPORT_DIRECTORY
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]

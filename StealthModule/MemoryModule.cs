@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace StealthModule
@@ -14,7 +15,7 @@ namespace StealthModule
         public Pointer BaseAddress { get; private set; } = Pointer.Zero;
 
         private Pointer ntHeadersAddress = Pointer.Zero;
-        private Pointer[] importModuleBaseAddresses;
+        private ICollection<Pointer> importModuleBaseAddresses;
         private bool wasDllMainSuccessful;
         private DllEntryDelegate dllEntryPoint;
         private ExeEntryDelegate exeEntryPoint;
