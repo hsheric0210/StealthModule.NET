@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExportLister", "Example\Exp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StealthModule.Test", "StealthModule.Test\StealthModule.Test.csproj", "{E47FA42B-1B2E-49C7-A4D8-3945F151EBD1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StealthModule.Syringe.Rpc", "StealthModule.Syringe.Rpc\StealthModule.Syringe.Rpc.vcxproj", "{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -70,6 +72,14 @@ Global
 		{E47FA42B-1B2E-49C7-A4D8-3945F151EBD1}.Release|x64.Build.0 = Release|x64
 		{E47FA42B-1B2E-49C7-A4D8-3945F151EBD1}.Release|x86.ActiveCfg = Release|x86
 		{E47FA42B-1B2E-49C7-A4D8-3945F151EBD1}.Release|x86.Build.0 = Release|x86
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Debug|x64.ActiveCfg = Debug|x64
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Debug|x64.Build.0 = Debug|x64
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Debug|x86.ActiveCfg = Debug|Win32
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Debug|x86.Build.0 = Debug|Win32
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Release|x64.ActiveCfg = Release|x64
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Release|x64.Build.0 = Release|x64
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Release|x86.ActiveCfg = Release|Win32
+		{FBBC1016-6B54-4D3A-B4F6-6F42F812834D}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
