@@ -1,6 +1,6 @@
-# MemoryModule
+# LocalMemoryModule
 
-Load a valid EXE or DLL portable executable file in-memory on-the-fly.
+Load a valid EXE or DLL portable executable file in-memory on-the-fly _from the current process_.
 
 Don't forget to dispose MemoryModule class after use! Otherwise it will create a memory leak.
 
@@ -13,7 +13,7 @@ private delegate IntPtr MyExportDelegate(string myParameter);
 
 public void ManualMap(byte[] dllBytes)
 {
-    using (var module = new MemoryModule(dllBytes)) // Auto-dispose
+    using (var module = new LocalMemoryModule(dllBytes)) // Auto-dispose
     {
         var myExport = module.GetExport<MyExportDelegate>("MyExportFunction1");
         myExport("Hello, World!");
@@ -31,7 +31,7 @@ private delegate IntPtr Job3Delegate(char param1, int param2, byte param3);
 
 public void ManualMap(byte[] dllBytes)
 {
-    using (var module = new MemoryModule(dllBytes)) // Auto-dispose
+    using (var module = new LocalMemoryModule(dllBytes)) // Auto-dispose
     {
         // module.GetExport will not work after erasing the PE header
         // You should acquire all required function pointers before erasing the PE header.
