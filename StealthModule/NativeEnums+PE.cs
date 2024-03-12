@@ -1,6 +1,6 @@
 ﻿namespace StealthModule
 {
-    internal enum BasedRelocationType
+    public enum BasedRelocationType
     {
         IMAGE_REL_BASED_ABSOLUTE = 0,
         IMAGE_REL_BASED_HIGH = 1,
@@ -13,7 +13,7 @@
         IMAGE_REL_BASED_DIR64 = 10
     }
 
-    internal enum DllCharacteristicsType : ushort
+    public enum DllCharacteristicsType : ushort
     {
         RES_0 = 0x0001,
         RES_1 = 0x0002,
@@ -30,7 +30,7 @@
         IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000
     }
 
-    internal enum DllReason : uint
+    public enum DllReason : uint
     {
         DLL_PROCESS_ATTACH = 1,
         DLL_THREAD_ATTACH = 2,
@@ -38,7 +38,7 @@
         DLL_PROCESS_DETACH = 0
     }
 
-    internal enum ImageSectionFlags : uint
+    public enum ImageSectionFlags : uint
     {
         IMAGE_SCN_LNK_NRELOC_OVFL = 0x01000000,  // Section contains extended relocations.
         IMAGE_SCN_MEM_DISCARDABLE = 0x02000000,  // Section can be discarded.
@@ -50,13 +50,13 @@
         IMAGE_SCN_MEM_WRITE = 0x80000000  // Section is writeable.
     }
 
-    internal enum MagicType : ushort
+    public enum MagicType : ushort
     {
         IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b,
         IMAGE_NT_OPTIONAL_HDR64_MAGIC = 0x20b
     }
 
-    internal enum SubSystemType : ushort
+    public enum SubSystemType : ushort
     {
         IMAGE_SUBSYSTEM_UNKNOWN = 0,
         IMAGE_SUBSYSTEM_NATIVE = 1,

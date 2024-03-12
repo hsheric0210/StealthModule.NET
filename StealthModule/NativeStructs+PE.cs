@@ -7,7 +7,7 @@ namespace StealthModule
     /// IMAGE_DOS_HEADER
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageDosHeader
+    public struct ImageDosHeader
     {
         public ushort e_magic;    // Magic number
         public ushort e_cblp;     // Bytes on last page of file
@@ -34,7 +34,7 @@ namespace StealthModule
     /// IMAGE_NT_HEADERS
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageNtHeaders
+    public struct ImageNtHeaders
     {
         public uint Signature;
         public ImageFileHeader FileHeader;
@@ -45,7 +45,7 @@ namespace StealthModule
     /// IMAGE_FILE_HEADER
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageFileHeader
+    public struct ImageFileHeader
     {
         public ushort Machine;
         public ushort NumberOfSections;
@@ -60,7 +60,7 @@ namespace StealthModule
     /// IMAGE_OPTIONAL_HEADER
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageOptionalHeader
+    public struct ImageOptionalHeader
     {
         public MagicType Magic;
         public byte MajorLinkerVersion;
@@ -113,7 +113,7 @@ namespace StealthModule
     /// IMAGE_DATA_DIRECTORY
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageDataDirectory
+    public struct ImageDataDirectory
     {
         public uint VirtualAddress;
         public uint Size;
@@ -123,7 +123,7 @@ namespace StealthModule
     /// IMAGE_SECTION_HEADER
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageSectionHeader
+    public struct ImageSectionHeader
     {
         public ulong Name; //8 byte string
         public uint PhysicalAddress;
@@ -141,7 +141,7 @@ namespace StealthModule
     /// IMAGE_BASE_RELOCATION
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageBaseRelocation
+    public struct ImageBaseRelocation
     {
         public uint VirtualAdress;
         public uint SizeOfBlock;
@@ -151,7 +151,7 @@ namespace StealthModule
     /// IMAGE_IMPORT_DESCRIPTOR
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageImportDescriptor
+    public struct ImageImportDescriptor
     {
         public uint OriginalFirstThunk;
         public uint TimeDateStamp;
@@ -167,7 +167,7 @@ namespace StealthModule
     /// available @ winnt.h
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageDelayImportDescriptor
+    public struct ImageDelayImportDescriptor
     {
         public uint AllAttributes;
         public uint DllNameRVA;
@@ -183,7 +183,7 @@ namespace StealthModule
     /// IMAGE_EXPORT_DIRECTORY
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageExportDirectory
+    public struct ImageExportDirectory
     {
         public uint Characteristics;
         public uint TimeDateStamp;
@@ -202,7 +202,7 @@ namespace StealthModule
     /// IMAGE_TLS_DIRECTORY
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    internal struct ImageTlsDirectory
+    public struct ImageTlsDirectory
     {
         public IntPtr StartAddressOfRawData;
         public IntPtr EndAddressOfRawData;

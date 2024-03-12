@@ -3,7 +3,7 @@
 namespace StealthModule
 {
     [Flags]
-    internal enum AllocationType : uint
+    public enum AllocationType : uint
     {
         None = 0,
         COMMIT = 0x1000,
@@ -18,7 +18,7 @@ namespace StealthModule
     }
 
     [Flags]
-    internal enum MemoryProtection : uint
+    public enum MemoryProtection : uint
     {
         None = 0,
         NOACCESS = 0x01,
@@ -35,7 +35,7 @@ namespace StealthModule
     }
 
     [Flags]
-    internal enum SectionTypes : uint
+    public enum SectionTypes : uint
     {
         None = 0,
         SEC_IMAGE = 0x1000000,
@@ -176,7 +176,7 @@ namespace StealthModule
         FILE_NO_COMPRESSION = 1 << 15
     }
 
-    internal enum ProcessInfoClass : uint
+    public enum ProcessInfoClass : uint
     {
         ProcessBasicInformation = 0,
     };
