@@ -72,7 +72,7 @@ namespace StealthModule.MemoryModule.Native.PE
     [StructLayout(LayoutKind.Sequential)]
     public struct ImageOptionalHeader
     {
-        public MagicType Magic;
+        public NtOptionalHeaderMagic Magic;
         public byte MajorLinkerVersion;
         public byte MinorLinkerVersion;
         public uint SizeOfCode;
@@ -141,10 +141,10 @@ namespace StealthModule.MemoryModule.Native.PE
 
     #region Enums
 
-    public enum MagicType : ushort
+    public enum NtOptionalHeaderMagic : ushort
     {
-        IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b,
-        IMAGE_NT_OPTIONAL_HDR64_MAGIC = 0x20b
+        Header32Magic = 0x10b,
+        Header64Magic = 0x20b
     }
 
     public enum SubSystemType : ushort
@@ -162,21 +162,22 @@ namespace StealthModule.MemoryModule.Native.PE
         IMAGE_SUBSYSTEM_XBOX = 14
     }
 
+    [Flags]
     public enum DllCharacteristicsType : ushort
     {
-        RES_0 = 0x0001,
-        RES_1 = 0x0002,
-        RES_2 = 0x0004,
-        RES_3 = 0x0008,
-        IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE = 0x0040,
-        IMAGE_DLL_CHARACTERISTICS_FORCE_INTEGRITY = 0x0080,
-        IMAGE_DLL_CHARACTERISTICS_NX_COMPAT = 0x0100,
-        IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 0x0200,
-        IMAGE_DLLCHARACTERISTICS_NO_SEH = 0x0400,
-        IMAGE_DLLCHARACTERISTICS_NO_BIND = 0x0800,
-        RES_4 = 0x1000,
-        IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = 0x2000,
-        IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000
+        RES_0 = 1 << 0,
+        RES_1 = 1 << 1,
+        RES_2 = 1 << 2,
+        RES_3 = 1 << 3,
+        IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE = 1 << 6,
+        IMAGE_DLL_CHARACTERISTICS_FORCE_INTEGRITY = 1 << 7,
+        IMAGE_DLL_CHARACTERISTICS_NX_COMPAT = 1 << 8,
+        IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 1 << 9,
+        IMAGE_DLLCHARACTERISTICS_NO_SEH = 1 << 10,
+        IMAGE_DLLCHARACTERISTICS_NO_BIND = 1 << 11,
+        RES_4 = 1 << 12,
+        IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = 1 << 13,
+        IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 1 << 15
     }
 
     #endregion

@@ -6,31 +6,31 @@ namespace StealthModule.MemoryModule.Native
     public enum AllocationType : uint
     {
         None = 0,
-        COMMIT = 0x1000,
-        RESERVE = 0x2000,
-        DECOMMIT = 0x4000,
-        RELEASE = 0x8000,
-        RESET = 0x80000,
-        TOP_DOWN = 0x100000,
-        WRITE_WATCH = 0x200000,
-        PHYSICAL = 0x400000,
-        LARGE_PAGES = 0x20000000
+        COMMIT = 1 << 12,
+        RESERVE = 1 << 13,
+        DECOMMIT = 1 << 14,
+        RELEASE = 1 << 15,
+        RESET = 1 << 19,
+        TOP_DOWN = 1 << 20,
+        WRITE_WATCH = 1 << 21,
+        PHYSICAL = 1 << 22,
+        LARGE_PAGES = 1 << 29
     }
 
     [Flags]
     public enum MemoryProtection : uint
     {
         None = 0,
-        NOACCESS = 0x01,
-        READONLY = 0x02,
-        READWRITE = 0x04,
-        WRITECOPY = 0x08,
-        EXECUTE = 0x10,
-        EXECUTE_READ = 0x20,
-        EXECUTE_READWRITE = 0x40,
-        EXECUTE_WRITECOPY = 0x80,
-        GUARD = 0x100,
-        NOCACHE = 0x200,
-        WRITECOMBINE = 0x400
+        NOACCESS = 1 << 0,
+        READONLY = 1 << 1,
+        READWRITE = 1 << 2,
+        WRITECOPY = 1 << 3,
+        EXECUTE = 1 << 4,
+        EXECUTE_READ = 1 << 5,
+        EXECUTE_READWRITE = 1 << 6,
+        EXECUTE_WRITECOPY = 1 << 7,
+        GUARD = 1 << 8,
+        NOCACHE = 1 << 9,
+        WRITECOMBINE = 1 << 10
     }
 }

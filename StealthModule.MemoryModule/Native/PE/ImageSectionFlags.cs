@@ -1,5 +1,8 @@
-﻿namespace StealthModule.MemoryModule.Native.PE
+﻿using System;
+
+namespace StealthModule.MemoryModule.Native.PE
 {
+    [Flags]
     public enum ImageSectionFlags : uint
     {
         IMAGE_SCN_LNK_NRELOC_OVFL = 0x01000000,  // Section contains extended relocations.
