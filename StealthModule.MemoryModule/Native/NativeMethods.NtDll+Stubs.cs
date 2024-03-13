@@ -5,7 +5,7 @@ namespace StealthModule.MemoryModule
 {
     internal static partial class NativeMethods
     {
-        internal static void RtlInitUnicodeString(ref UNICODE_STRING destinationString, string sourceString)
+        internal static void RtlInitUnicodeString(ref UnicodeString destinationString, string sourceString)
         {
             if (rtlInitUnicodeString == null)
                 InitNtDLL();
@@ -112,7 +112,7 @@ namespace StealthModule.MemoryModule
             return ntQueryInformationProcess(processHandle, processInformationClass, processInformation, processInformationLength, out returnLength);
         }
 
-        internal static NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UNICODE_STRING moduleFileName, out IntPtr moduleHandle)
+        internal static NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UnicodeString moduleFileName, out IntPtr moduleHandle)
         {
             if (ldrLoadDll == null)
                 InitNtDLL();

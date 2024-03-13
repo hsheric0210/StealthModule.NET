@@ -18,7 +18,7 @@ namespace StealthModule.MemoryModule
             }
 
             // Open file handle
-            var ObjectName = new UNICODE_STRING();
+            var ObjectName = new UnicodeString();
             NativeMethods.RtlInitUnicodeString(ref ObjectName, @"\??\" + dllFilePath);
             var objectNameAddress = Marshal.AllocHGlobal(Marshal.SizeOf(ObjectName));
             Marshal.StructureToPtr(ObjectName, objectNameAddress, true);

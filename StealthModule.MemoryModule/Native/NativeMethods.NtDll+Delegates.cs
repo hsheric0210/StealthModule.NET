@@ -9,7 +9,7 @@ namespace StealthModule.MemoryModule
         internal static class NtDllDelegates
         {
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate void RtlInitUnicodeString(ref UNICODE_STRING destinationString, [MarshalAs(UnmanagedType.LPWStr)] string sourceString);
+            internal delegate void RtlInitUnicodeString(ref UnicodeString destinationString, [MarshalAs(UnmanagedType.LPWStr)] string sourceString);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate void RtlZeroMemory(IntPtr destination, int length);
@@ -48,7 +48,7 @@ namespace StealthModule.MemoryModule
             internal delegate NTSTATUS NtQueryInformationProcess(IntPtr processHandle, ProcessInfoClass processInformationClass, IntPtr processInformation, int processInformationLength, out uint returnLength);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-            internal delegate NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UNICODE_STRING moduleFileName, out IntPtr moduleHandle);
+            internal delegate NTSTATUS LdrLoadDll(IntPtr pathToFile, uint flags, ref UnicodeString moduleFileName, out IntPtr moduleHandle);
 
             [UnmanagedFunctionPointer(CallingConvention.StdCall)]
             internal delegate NTSTATUS LdrUnloadDll(IntPtr moduleHandle);

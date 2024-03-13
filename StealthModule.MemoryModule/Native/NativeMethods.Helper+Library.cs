@@ -8,7 +8,7 @@ namespace StealthModule.MemoryModule
     {
         internal static Pointer LoadLibrary(string dllPath)
         {
-            var moduleName = new UNICODE_STRING();
+            var moduleName = new UnicodeString();
             RtlInitUnicodeString(ref moduleName, dllPath);
             var status = LdrLoadDll(IntPtr.Zero, 0, ref moduleName, out var moduleHandle);
             if (status != NTSTATUS.Success || moduleHandle == IntPtr.Zero || ((Pointer)moduleHandle).IsInvalidHandle())
@@ -23,7 +23,7 @@ namespace StealthModule.MemoryModule
         internal static Pointer GetProcAddress(Pointer handle, string functionName)
         {
             var functionNameAnsiBuffer = Marshal.StringToHGlobalAnsi(functionName);
-            var functionNameAnsi = new ANSI_STRING
+            var functionNameAnsi = new AnsiString
             {
                 Length = (ushort)functionName.Length,
                 MaximumLength = (ushort)(functionName.Length * 2),

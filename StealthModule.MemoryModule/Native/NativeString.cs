@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace StealthModule.MemoryModule.Native
 {
     [StructLayout(LayoutKind.Sequential)]
-    public struct UNICODE_STRING
+    public struct UnicodeString
     {
         public ushort Length;
         public ushort MaximumLength;
@@ -12,7 +12,7 @@ namespace StealthModule.MemoryModule.Native
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct ANSI_STRING
+    public struct AnsiString
     {
         public ushort Length;
         public ushort MaximumLength;
