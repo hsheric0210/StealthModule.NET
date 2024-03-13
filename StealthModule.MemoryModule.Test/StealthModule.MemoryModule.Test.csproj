@@ -16,7 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\StealthModule\StealthModule.csproj" />
+        <ProjectReference Include="..\StealthModule.MemoryModule\StealthModule.MemoryModule.csproj" />
     </ItemGroup>
 
 </Project>
