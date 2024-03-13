@@ -62,7 +62,7 @@ namespace StealthModule
             Marshal.WriteInt64(ptr, unchecked((long)buf));
             var res = Marshal.PtrToStringAnsi(ptr, 8);
             Marshal.FreeHGlobal(ptr);
-            return res;
+            return res.Trim();
         }
     }
 }

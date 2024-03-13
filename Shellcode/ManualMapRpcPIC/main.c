@@ -3,7 +3,6 @@
 #pragma warning( disable : 4201 ) // Disable warning about 'nameless struct/union'
 
 #include "GetProcAddressWithHash.h"
-#include "64BitHelper.h"
 #include <windows.h>
 #include <intrin.h>
 

@@ -11,22 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="FunctionLinkOrder32.txt" />
-    <Text Include="FunctionLinkOrder64.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <MASM Include="AlignStack.asm" />
+    <Text Include="FunctionLinkOrder.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{fbbc1016-6b54-4d3a-b4f6-6f42f812834d}</ProjectGuid>
-    <RootNamespace>StealthModuleSyringeRpc</RootNamespace>
+    <RootNamespace>StealthModuleManualMapRpcPIC</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>shellcode-ManualMapRpc</ProjectName>
+    <ProjectName>ManualMapRpcPIC</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -37,9 +33,6 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
-  </ImportGroup>
   <ImportGroup Label="Shared">
     <Import Project="..\Shared\Shared.vcxitems" Label="Shared" />
   </ImportGroup>
@@ -63,13 +56,13 @@
       <OptimizeReferences>true</OptimizeReferences>
       <SetChecksum>false</SetChecksum>
       <GenerateMapFile>true</GenerateMapFile>
-      <FunctionOrder>function_link_order.txt</FunctionOrder>
+      <FunctionOrder>FunctionLinkOrder.txt</FunctionOrder>
       <EntryPointSymbol>ExecutePayload</EntryPointSymbol>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>powershell.exe -NonInteractive -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)lib\Out-Shellcode.ps1" "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)lib" "$(OutDir)$(TargetName).map" "$(OutDir)$(TargetName)_shellcode.bin"</Command>
+      <Command>"$(SolutionDir)lib\ShellcodeConverter32.exe" "$(OutDir)$(TargetName)$(TargetExt)" "$(OutDir)$(TargetName).map" "$(SolutionDir)Shellcode\bin\$(TargetName)_x86.bin"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -90,17 +83,14 @@
       <OptimizeReferences>true</OptimizeReferences>
       <SetChecksum>false</SetChecksum>
       <GenerateMapFile>true</GenerateMapFile>
-      <FunctionOrder>FunctionLinkOrder64.txt</FunctionOrder>
-      <EntryPointSymbol>Begin</EntryPointSymbol>
+      <FunctionOrder>FunctionLinkOrder.txt</FunctionOrder>
+      <EntryPointSymbol>ExecutePayload</EntryPointSymbol>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>powershell.exe -NonInteractive -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$(SolutionDir)lib\Out-Shellcode.ps1" "$(OutDir)$(TargetName)$(TargetExt)" "$(SolutionDir)lib" "$(OutDir)$(TargetName).map" "$(OutDir)$(TargetName)_shellcode.bin"</Command>
+      <Command>"$(SolutionDir)lib\ShellcodeConverter64.exe" "$(OutDir)$(TargetName)$(TargetExt)" "$(OutDir)$(TargetName).map" "$(SolutionDir)Shellcode\bin\$(TargetName)_x64.bin"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
-  </ImportGroup>
 </Project>

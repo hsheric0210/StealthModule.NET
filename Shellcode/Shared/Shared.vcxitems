@@ -15,7 +15,6 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)64BitHelper.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)GetProcAddressWithHash.h" />
   </ItemGroup>
 </Project>
