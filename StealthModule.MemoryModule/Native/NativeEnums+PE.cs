@@ -1,4 +1,4 @@
-﻿namespace StealthModule.MemoryModule
+﻿namespace StealthModule.MemoryModule.Native
 {
     public enum BasedRelocationType
     {

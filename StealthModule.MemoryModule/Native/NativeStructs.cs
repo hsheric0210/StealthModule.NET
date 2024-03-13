@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace StealthModule.MemoryModule
+namespace StealthModule.MemoryModule.Native
 {
     /// <summary>
     /// SYSTEM_INFO
@@ -12,9 +12,9 @@ namespace StealthModule.MemoryModule
         public ushort wProcessorArchitecture;
         public ushort wReserved;
         public uint dwPageSize;
-        public IntPtr lpMinimumApplicationAddress;
-        public IntPtr lpMaximumApplicationAddress;
-        public IntPtr dwActiveProcessorMask;
+        public nint lpMinimumApplicationAddress;
+        public nint lpMaximumApplicationAddress;
+        public nint dwActiveProcessorMask;
         public uint dwNumberOfProcessors;
         public uint dwProcessorType;
         public uint dwAllocationGranularity;
@@ -27,7 +27,7 @@ namespace StealthModule.MemoryModule
     {
         public ushort Length;
         public ushort MaximumLength;
-        public IntPtr Buffer;
+        public nint Buffer;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -35,25 +35,25 @@ namespace StealthModule.MemoryModule
     {
         public ushort Length;
         public ushort MaximumLength;
-        public IntPtr Buffer;
+        public nint Buffer;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct OBJECT_ATTRIBUTES
     {
         public int Length;
-        public IntPtr RootDirectory;
-        public IntPtr ObjectName; // -> UNICODE_STRING
+        public nint RootDirectory;
+        public nint ObjectName; // -> UNICODE_STRING
         public uint Attributes;
-        public IntPtr SecurityDescriptor;
-        public IntPtr SecurityQualityOfService;
+        public nint SecurityDescriptor;
+        public nint SecurityQualityOfService;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     public struct IO_STATUS_BLOCK
     {
-        public IntPtr Status;
-        public IntPtr Information;
+        public nint Status;
+        public nint Information;
     }
 
     /// <summary>
@@ -69,9 +69,9 @@ namespace StealthModule.MemoryModule
         public uint LowestPhysicalPageNumber;
         public uint HighestPhysicalPageNumber;
         public uint AllocationGranularity;
-        public IntPtr MinimumUserModeAddress;
-        public IntPtr MaximumUserModeAddress;
-        public IntPtr ActiveProcessorsAffinityMask;
+        public nint MinimumUserModeAddress;
+        public nint MaximumUserModeAddress;
+        public nint ActiveProcessorsAffinityMask;
         public uint NumberOfProcessors;
     }
 
@@ -95,11 +95,11 @@ namespace StealthModule.MemoryModule
     [StructLayout(LayoutKind.Sequential)]
     public struct ProcessBasicInformation
     {
-        public IntPtr ExitStatus;
-        public IntPtr PebBaseAddress;
-        public IntPtr AffinityMask;
-        public IntPtr BasePriority;
-        public UIntPtr UniqueProcessId;
+        public nint ExitStatus;
+        public nint PebBaseAddress;
+        public nint AffinityMask;
+        public nint BasePriority;
+        public nuint UniqueProcessId;
         public int InheritedFromUniqueProcessId;
     }
 }

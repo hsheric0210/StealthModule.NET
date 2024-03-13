@@ -1,4 +1,6 @@
-﻿namespace StealthModule.MemoryModule
+﻿using StealthModule.MemoryModule.Native;
+
+namespace StealthModule.MemoryModule
 {
     public partial class MemoryModuleBase
     {

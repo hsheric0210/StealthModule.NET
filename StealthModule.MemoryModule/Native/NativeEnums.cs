@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StealthModule.MemoryModule
+namespace StealthModule.MemoryModule.Native
 {
     [Flags]
     public enum AllocationType : uint

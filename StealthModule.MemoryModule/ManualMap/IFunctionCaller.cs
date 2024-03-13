@@ -1,4 +1,5 @@
 ﻿using System;
+using StealthModule.MemoryModule.Native;
 
 namespace StealthModule.MemoryModule.ManualMap
 {

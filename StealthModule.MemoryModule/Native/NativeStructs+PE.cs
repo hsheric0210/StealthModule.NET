@@ -1,7 +1,15 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace StealthModule.MemoryModule
+/* Unmerged change from project 'StealthModule.MemoryModule (net8.0-windows)'
+Before:
+using StealthModule.MemoryModule.Native;
+After:
+using StealthModule;
+using StealthModule.MemoryModule.Native;
+*/
+
+namespace StealthModule.MemoryModule.Native
 {
     /// <summary>
     /// IMAGE_DOS_HEADER
@@ -85,10 +93,10 @@ namespace StealthModule.MemoryModule
         public uint CheckSum;
         public SubSystemType Subsystem;
         public DllCharacteristicsType DllCharacteristics;
-        public IntPtr SizeOfStackReserve;
-        public IntPtr SizeOfStackCommit;
-        public IntPtr SizeOfHeapReserve;
-        public IntPtr SizeOfHeapCommit;
+        public nint SizeOfStackReserve;
+        public nint SizeOfStackCommit;
+        public nint SizeOfHeapReserve;
+        public nint SizeOfHeapCommit;
         public uint LoaderFlags;
         public uint NumberOfRvaAndSizes;
         public ImageDataDirectory ExportTable;
@@ -204,11 +212,11 @@ namespace StealthModule.MemoryModule
     [StructLayout(LayoutKind.Sequential)]
     public struct ImageTlsDirectory
     {
-        public IntPtr StartAddressOfRawData;
-        public IntPtr EndAddressOfRawData;
-        public IntPtr AddressOfIndex;
-        public IntPtr AddressOfCallBacks;
-        public IntPtr SizeOfZeroFill;
+        public nint StartAddressOfRawData;
+        public nint EndAddressOfRawData;
+        public nint AddressOfIndex;
+        public nint AddressOfCallBacks;
+        public nint SizeOfZeroFill;
         public uint Characteristics;
     }
 

@@ -1,9 +1,9 @@
-﻿namespace StealthModule.MemoryModule
+﻿namespace StealthModule.MemoryModule.Native
 {
     internal static class NativeMagics
     {
-        internal const ushort IMAGE_DOS_SIGNATURE = 0x5A4D;
-        internal const uint IMAGE_NT_SIGNATURE = 0x00004550;
+        internal const ushort IMAGE_DOS_SIGNATURE = 0x5A4D; // MZ
+        internal const uint IMAGE_NT_SIGNATURE = 0x00004550; // PE
         internal const uint IMAGE_FILE_MACHINE_I386 = 0x014c;
         internal const uint IMAGE_FILE_MACHINE_AMD64 = 0x8664;
         internal const uint IMAGE_SCN_CNT_INITIALIZED_DATA = 0x00000040;

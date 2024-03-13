@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using StealthModule.MemoryModule.ManualMap;
+using StealthModule.MemoryModule.Native;
 
 namespace StealthModule.MemoryModule
 {

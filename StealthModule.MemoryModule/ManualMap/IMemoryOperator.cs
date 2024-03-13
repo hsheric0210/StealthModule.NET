@@ -1,4 +1,6 @@
-﻿namespace StealthModule.MemoryModule.ManualMap
+﻿using StealthModule.MemoryModule.Native;
+
+namespace StealthModule.MemoryModule.ManualMap
 {
     public interface IMemoryOperator
     {

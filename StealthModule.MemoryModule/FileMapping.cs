@@ -1,6 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using System;
 using System.IO;
+using StealthModule.MemoryModule.Native;
 
 namespace StealthModule.MemoryModule
 {
