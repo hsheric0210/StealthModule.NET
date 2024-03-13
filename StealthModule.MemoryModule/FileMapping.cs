@@ -4,10 +4,8 @@ using System.IO;
 
 namespace StealthModule
 {
-    public class FileMapping : IModule
+    public class FileMapping
     {
-        public ExportResolver Exports => throw new NotSupportedException("FileModuleMapping-mapped DLL does not support exports.");
-
         public Pointer BaseAddress { get; }
 
         public FileMapping(string dllFilePath)
