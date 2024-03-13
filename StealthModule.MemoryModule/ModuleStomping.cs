@@ -6,7 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace StealthModule
 {
-    public class ModuleStomping : IModule
+    public class ModuleStomping
     {
         private FileMapping decoyModule;
         private MemoryStompingModule realModule;

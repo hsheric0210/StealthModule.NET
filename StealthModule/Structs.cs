@@ -45,7 +45,7 @@ namespace StealthModule
 {
     public static class Structs
     {
-        internal static T ReadOffset<T>(byte[] buf, int offset)
+        public static T ReadOffset<T>(byte[] buf, int offset)
         {
             var size = Marshal.SizeOf(typeof(T));
             var ptr = Marshal.AllocHGlobal(size); //todo: replace with GCHandle
@@ -55,7 +55,7 @@ namespace StealthModule
             return res;
         }
 
-        internal static string LongTo8byteString(ulong buf)
+        public static string LongTo8byteString(ulong buf)
         {
             var size = sizeof(ulong);
             var ptr = Marshal.AllocHGlobal(size); //todo: replace with GCHandle
