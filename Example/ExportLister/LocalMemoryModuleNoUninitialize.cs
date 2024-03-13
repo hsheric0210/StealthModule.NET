@@ -1,4 +1,4 @@
-﻿using StealthModule;
+﻿using StealthModule.MemoryModule;
 
 namespace ExportLister
 {
