@@ -15,27 +15,27 @@
 
     internal static class NativeOffsets
     {
-        internal const int IMAGE_NT_HEADERS_OptionalHeader = 24;
-        internal const int IMAGE_SECTION_HEADER_PhysicalAddress = 8;
-        internal const int IMAGE_IMPORT_BY_NAME_Name = 2;
+        internal const int IMAGE_NT_HEADERS_OptionalHeader = 0x18;
+        internal const int IMAGE_SECTION_HEADER_PhysicalAddress = 0x8;
+        internal const int IMAGE_IMPORT_BY_NAME_Name = 0x2;
     }
 
     internal static class NativeOffsets32
     {
-        internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 28;
-        internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 96;
+        internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 0x1C;
+        internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 0x60;
     }
 
     internal static class NativeOffsets64
     {
-        internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 24;
-        internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 112;
+        internal const int IMAGE_OPTIONAL_HEADER_ImageBase = 0x18;
+        internal const int IMAGE_OPTIONAL_HEADER_ExportTable = 0x70;
     }
 
     internal static class NativeSizes
     {
-        internal const int IMAGE_SECTION_HEADER = 40;
-        internal const int IMAGE_BASE_RELOCATION = 8;
-        internal const int IMAGE_IMPORT_DESCRIPTOR = 20;
+        internal const int IMAGE_SECTION_HEADER = 0x28;
+        internal const int IMAGE_BASE_RELOCATION = 0x8;
+        internal const int IMAGE_IMPORT_DESCRIPTOR = 0x14;
     }
 }
