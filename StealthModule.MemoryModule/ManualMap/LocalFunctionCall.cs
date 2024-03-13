@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace StealthModule.ManualMap
+namespace StealthModule.MemoryModule.ManualMap
 {
     public class LocalFunctionCall : IFunctionCaller
     {

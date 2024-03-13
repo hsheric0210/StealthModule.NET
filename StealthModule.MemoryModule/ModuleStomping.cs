@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     public class ModuleStomping
     {

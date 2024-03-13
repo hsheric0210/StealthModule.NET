@@ -1,4 +1,4 @@
-﻿namespace StealthModule.ManualMap
+﻿namespace StealthModule.MemoryModule.ManualMap
 {
     internal class LocalMemoryStompingOperator : IMemoryOperator
     {

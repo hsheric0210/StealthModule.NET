@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     public partial class MemoryModuleBase
     {

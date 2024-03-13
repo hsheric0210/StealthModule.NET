@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StealthModule.ManualMap
+namespace StealthModule.MemoryModule.ManualMap
 {
     internal class LocalMemoryOperator : IMemoryOperator
     {

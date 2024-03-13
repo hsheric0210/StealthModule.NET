@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     /// <summary>
     /// SYSTEM_INFO

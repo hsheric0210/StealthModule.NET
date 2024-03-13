@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     public class FileMapping
     {

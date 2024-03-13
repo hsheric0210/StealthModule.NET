@@ -1,7 +1,7 @@
-﻿using StealthModule.ManualMap;
+﻿using StealthModule.MemoryModule.ManualMap;
 using System;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     public partial class MemoryStompingModule : MemoryModuleBase
     {

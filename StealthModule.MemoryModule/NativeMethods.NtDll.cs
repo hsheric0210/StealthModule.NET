@@ -1,6 +1,6 @@
-﻿using static StealthModule.NativeMethods.NtDllDelegates;
+﻿using static StealthModule.MemoryModule.NativeMethods.NtDllDelegates;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     internal static partial class NativeMethods
     {

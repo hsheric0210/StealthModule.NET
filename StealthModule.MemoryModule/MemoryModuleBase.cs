@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using StealthModule.ManualMap;
+using StealthModule.MemoryModule.ManualMap;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     public abstract partial class MemoryModuleBase : IDisposable
     {

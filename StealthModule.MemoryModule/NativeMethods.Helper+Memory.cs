@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     internal static partial class NativeMethods
     {

@@ -1,4 +1,4 @@
-﻿namespace StealthModule
+﻿namespace StealthModule.MemoryModule
 {
     internal partial class NativeMethods
     {

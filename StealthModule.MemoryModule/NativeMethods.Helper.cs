@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace StealthModule
+namespace StealthModule.MemoryModule
 {
     internal static partial class NativeMethods
     {
