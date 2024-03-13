@@ -2,6 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using System;
 using System.IO;
+using StealthModule.MemoryModule;
 
 namespace StealthModule.MemoryModuleTest.MemoryModuleTests
 {

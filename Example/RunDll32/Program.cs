@@ -1,4 +1,5 @@
 ﻿using StealthModule;
+using StealthModule.MemoryModule;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
