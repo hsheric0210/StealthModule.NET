@@ -19,7 +19,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{fbbc1016-6b54-4d3a-b4f6-6f42f812834d}</ProjectGuid>
+    <ProjectGuid>{40C56796-3919-46E2-BEEA-3D97D2F4DA3A}</ProjectGuid>
     <RootNamespace>StealthModuleNetInjectPIC</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>NetInjectPIC</ProjectName>

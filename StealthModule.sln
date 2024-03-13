@@ -23,7 +23,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetInjectPIC", "Shellcode\N
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShellcodeConverter", "lib\ShellcodeConverter\ShellcodeConverter.csproj", "{95D71523-4F08-443D-92CE-3676A00E5098}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SharedPIC", "Shellcode\Shared\Shared.vcxitems", "{89959E15-1C42-46B4-8FDF-90FE8F9DEB87}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shellcode-Shared", "Shellcode\Shared\Shared.vcxitems", "{89959E15-1C42-46B4-8FDF-90FE8F9DEB87}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -162,6 +162,7 @@ Global
 		SolutionGuid = {E90D16C7-9A50-4D9B-9DD0-5EEBECFE1915}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Shellcode\Shared\Shared.vcxitems*{40c56796-3919-46e2-beea-3d97d2f4da3a}*SharedItemsImports = 4
 		Shellcode\Shared\Shared.vcxitems*{89959e15-1c42-46b4-8fdf-90fe8f9deb87}*SharedItemsImports = 9
 		Shellcode\Shared\Shared.vcxitems*{fbbc1016-6b54-4d3a-b4f6-6f42f812834d}*SharedItemsImports = 4
 	EndGlobalSection
