@@ -1,17 +1,26 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using StealthModule.MemoryModule.Native.PE;
 
-namespace StealthModule.MemoryModule
+/* Unmerged change from project 'StealthModule (net8.0-windows)'
+Before:
+using StealthModule.MemoryModule.Native.PE;
+After:
+using StealthModule;
+using StealthModule;
+using StealthModule.MemoryModule.Native.PE;
+*/
+using StealthModule.Native.PE;
+
+namespace StealthModule
 {
-    internal class PEHeader
+    public class PEHeader
     {
-        internal Pointer BaseAddress { get; }
-        internal uint NtHeadersSignature { get; }
-        internal bool Is64Bit { get; }
-        internal ImageFileHeader FileHeader { get; }
-        internal ImageOptionalHeader OptHeader { get; }
-        internal ImageSectionHeader[] Sections { get; }
+        public Pointer BaseAddress { get; }
+        public uint NtHeadersSignature { get; }
+        public bool Is64Bit { get; }
+        public ImageFileHeader FileHeader { get; }
+        public ImageOptionalHeader OptionalHeader { get; }
+        public ImageSectionHeader[] Sections { get; }
 
         public PEHeader(Pointer baseAddress)
         {
@@ -27,7 +36,7 @@ namespace StealthModule.MemoryModule
             FileHeader = (ImageFileHeader)Marshal.PtrToStructure((IntPtr)((ulong)baseAddress + e_lfanew + 0x4), typeof(ImageFileHeader));
 
             var optHeaderAddress = (IntPtr)((ulong)baseAddress + e_lfanew + 0x18);
-            OptHeader = (ImageOptionalHeader)Marshal.PtrToStructure(optHeaderAddress, typeof(ImageOptionalHeader));
+            OptionalHeader = (ImageOptionalHeader)Marshal.PtrToStructure(optHeaderAddress, typeof(ImageOptionalHeader));
 
             var optHeaderMagic = (ushort)Marshal.ReadInt16(optHeaderAddress);
             Is64Bit = optHeaderMagic == 0x020b;

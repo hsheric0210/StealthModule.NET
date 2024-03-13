@@ -43,7 +43,7 @@ namespace StealthModule.MemoryModule
             var decoyInfo = new PEHeader(decoyModule.BaseAddress);
 
             IntPtr decoyBase = decoyModule.BaseAddress;
-            var decoyPeSize = (IntPtr)decoyInfo.OptHeader.SizeOfImage;
+            var decoyPeSize = (IntPtr)decoyInfo.OptionalHeader.SizeOfImage;
             var status = NativeMethods.NtProtectVirtualMemory(NativeMethods.GetCurrentProcess(), ref decoyBase, ref decoyPeSize, MemoryProtection.READWRITE, out _);
             if (!NativeMethods.NT_SUCCESS(status))
                 throw new ModuleException("Failed to unprotect the decoy region: NtProtectVirtualMemory returned " + status);

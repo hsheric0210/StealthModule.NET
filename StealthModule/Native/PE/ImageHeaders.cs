@@ -9,7 +9,7 @@ using StealthModule;
 using StealthModule.MemoryModule.Native;
 */
 
-namespace StealthModule.MemoryModule.Native.PE
+namespace StealthModule.Native.PE
 {
     #region Structs
 

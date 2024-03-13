@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace StealthModule.MemoryModule.Native.PE
+namespace StealthModule.Native.PE
 {
     #region Structs
 

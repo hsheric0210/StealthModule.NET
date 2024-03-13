@@ -1,6 +1,6 @@
 ﻿using System;
 using StealthModule.MemoryModule.Native;
-using StealthModule.MemoryModule.Native.PE;
+using StealthModule.Native.PE;
 
 namespace StealthModule.MemoryModule
 {

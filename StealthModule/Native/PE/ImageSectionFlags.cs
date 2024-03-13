@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StealthModule.MemoryModule.Native.PE
+namespace StealthModule.Native.PE
 {
     [Flags]
     public enum ImageSectionFlags : uint
