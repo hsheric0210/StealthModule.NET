@@ -1,5 +1,4 @@
-﻿using StealthModule.MemoryModule.Native;
-using StealthModule.Native.PE;
+﻿using StealthModule.Native.PE;
 
 namespace StealthModule.MemoryModule
 {

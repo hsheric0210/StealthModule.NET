@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using StealthModule.MemoryModule.Native;
 using StealthModule.Native.PE;
 
 namespace StealthModule.MemoryModule
