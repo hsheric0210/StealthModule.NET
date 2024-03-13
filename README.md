@@ -61,6 +61,9 @@ https://github.com/fancycode/MemoryModule
 
 * [DllFromMemory.Net](https://github.com/schellingb/DLLFromMemory-net)
 * [DInvoke](https://github.com/TheWover/DInvoke)
+* [Blackbone](https://github.com/DarthTon/Blackbone)
+* [sRDI](https://github.com/monoxgas/sRDI)
+* [MemoryModule](https://github.com/fancycode/MemoryModule)
 
 `Resolver.cs` is based on DInvoke [Generic.cs](https://github.com/TheWover/DInvoke/blob/15924897d9992ae90ec43aaf3b74915df3e4518b/DInvoke/DInvoke/DynamicInvoke/Generic.cs)
 
