@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace StealthModule.MemoryModule.Native
 {
+    #region Structs
+
     /// <summary>
     /// SYSTEM_INFO
     /// </summary>
@@ -12,49 +16,15 @@ namespace StealthModule.MemoryModule.Native
         public ushort wProcessorArchitecture;
         public ushort wReserved;
         public uint dwPageSize;
-        public nint lpMinimumApplicationAddress;
-        public nint lpMaximumApplicationAddress;
-        public nint dwActiveProcessorMask;
+        public IntPtr lpMinimumApplicationAddress;
+        public IntPtr lpMaximumApplicationAddress;
+        public IntPtr dwActiveProcessorMask;
         public uint dwNumberOfProcessors;
         public uint dwProcessorType;
         public uint dwAllocationGranularity;
         public ushort wProcessorLevel;
         public ushort wProcessorRevision;
     };
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct UNICODE_STRING
-    {
-        public ushort Length;
-        public ushort MaximumLength;
-        public nint Buffer;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ANSI_STRING
-    {
-        public ushort Length;
-        public ushort MaximumLength;
-        public nint Buffer;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct OBJECT_ATTRIBUTES
-    {
-        public int Length;
-        public nint RootDirectory;
-        public nint ObjectName; // -> UNICODE_STRING
-        public uint Attributes;
-        public nint SecurityDescriptor;
-        public nint SecurityQualityOfService;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct IO_STATUS_BLOCK
-    {
-        public nint Status;
-        public nint Information;
-    }
 
     /// <summary>
     /// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntexapi/system_basic_information.htm
@@ -69,9 +39,9 @@ namespace StealthModule.MemoryModule.Native
         public uint LowestPhysicalPageNumber;
         public uint HighestPhysicalPageNumber;
         public uint AllocationGranularity;
-        public nint MinimumUserModeAddress;
-        public nint MaximumUserModeAddress;
-        public nint ActiveProcessorsAffinityMask;
+        public IntPtr MinimumUserModeAddress;
+        public IntPtr MaximumUserModeAddress;
+        public IntPtr ActiveProcessorsAffinityMask;
         public uint NumberOfProcessors;
     }
 
@@ -92,14 +62,17 @@ namespace StealthModule.MemoryModule.Native
         public byte Reserved;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ProcessBasicInformation
+    #endregion
+
+    #region Enums
+
+    /// <summary>
+    /// https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntexapi/system_information_class.htm
+    /// </summary>
+    public enum SystemInformationClass : uint
     {
-        public nint ExitStatus;
-        public nint PebBaseAddress;
-        public nint AffinityMask;
-        public nint BasePriority;
-        public nuint UniqueProcessId;
-        public int InheritedFromUniqueProcessId;
+        SystemBasicInformation = 0x00,
     }
+
+    #endregion
 }

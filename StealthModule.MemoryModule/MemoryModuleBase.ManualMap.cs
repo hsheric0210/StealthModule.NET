@@ -1,5 +1,6 @@
 ﻿using StealthModule.MemoryModule.ManualMap;
 using StealthModule.MemoryModule.Native;
+using StealthModule.MemoryModule.Native.PE;
 using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;

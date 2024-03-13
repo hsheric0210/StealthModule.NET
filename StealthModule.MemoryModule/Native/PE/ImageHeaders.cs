@@ -9,8 +9,10 @@ using StealthModule;
 using StealthModule.MemoryModule.Native;
 */
 
-namespace StealthModule.MemoryModule.Native
+namespace StealthModule.MemoryModule.Native.PE
 {
+    #region Structs
+
     /// <summary>
     /// IMAGE_DOS_HEADER
     /// </summary>
@@ -93,10 +95,10 @@ namespace StealthModule.MemoryModule.Native
         public uint CheckSum;
         public SubSystemType Subsystem;
         public DllCharacteristicsType DllCharacteristics;
-        public nint SizeOfStackReserve;
-        public nint SizeOfStackCommit;
-        public nint SizeOfHeapReserve;
-        public nint SizeOfHeapCommit;
+        public IntPtr SizeOfStackReserve;
+        public IntPtr SizeOfStackCommit;
+        public IntPtr SizeOfHeapReserve;
+        public IntPtr SizeOfHeapCommit;
         public uint LoaderFlags;
         public uint NumberOfRvaAndSizes;
         public ImageDataDirectory ExportTable;
@@ -118,16 +120,6 @@ namespace StealthModule.MemoryModule.Native
     }
 
     /// <summary>
-    /// IMAGE_DATA_DIRECTORY
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ImageDataDirectory
-    {
-        public uint VirtualAddress;
-        public uint Size;
-    }
-
-    /// <summary>
     /// IMAGE_SECTION_HEADER
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
@@ -145,111 +137,47 @@ namespace StealthModule.MemoryModule.Native
         public uint Characteristics;
     }
 
-    /// <summary>
-    /// IMAGE_BASE_RELOCATION
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ImageBaseRelocation
+    #endregion
+
+    #region Enums
+
+    public enum MagicType : ushort
     {
-        public uint VirtualAdress;
-        public uint SizeOfBlock;
+        IMAGE_NT_OPTIONAL_HDR32_MAGIC = 0x10b,
+        IMAGE_NT_OPTIONAL_HDR64_MAGIC = 0x20b
     }
 
-    /// <summary>
-    /// IMAGE_IMPORT_DESCRIPTOR
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ImageImportDescriptor
+    public enum SubSystemType : ushort
     {
-        public uint OriginalFirstThunk;
-        public uint TimeDateStamp;
-        public uint ForwarderChain;
-        public uint Name;
-        public uint FirstThunk;
+        IMAGE_SUBSYSTEM_UNKNOWN = 0,
+        IMAGE_SUBSYSTEM_NATIVE = 1,
+        IMAGE_SUBSYSTEM_WINDOWS_GUI = 2,
+        IMAGE_SUBSYSTEM_WINDOWS_CUI = 3,
+        IMAGE_SUBSYSTEM_POSIX_CUI = 7,
+        IMAGE_SUBSYSTEM_WINDOWS_CE_GUI = 9,
+        IMAGE_SUBSYSTEM_EFI_APPLICATION = 10,
+        IMAGE_SUBSYSTEM_EFI_BOOT_SERVICE_DRIVER = 11,
+        IMAGE_SUBSYSTEM_EFI_RUNTIME_DRIVER = 12,
+        IMAGE_SUBSYSTEM_EFI_ROM = 13,
+        IMAGE_SUBSYSTEM_XBOX = 14
     }
 
-    /// <summary>
-    /// IMAGE_DELAYLOAD_DESCRIPTOR
-    /// </summary>
-    /// <remarks>
-    /// available @ winnt.h
-    /// </remarks>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ImageDelayImportDescriptor
+    public enum DllCharacteristicsType : ushort
     {
-        public uint AllAttributes;
-        public uint DllNameRVA;
-        public uint ModuleHandleRVA;
-        public uint ImportAddressTableRVA;
-        public uint ImportNameTableRVA;
-        public uint BoundImportAddressTableRVA;
-        public uint UnloadInformationTableRVA;
-        public uint TimeDateStamp;
+        RES_0 = 0x0001,
+        RES_1 = 0x0002,
+        RES_2 = 0x0004,
+        RES_3 = 0x0008,
+        IMAGE_DLL_CHARACTERISTICS_DYNAMIC_BASE = 0x0040,
+        IMAGE_DLL_CHARACTERISTICS_FORCE_INTEGRITY = 0x0080,
+        IMAGE_DLL_CHARACTERISTICS_NX_COMPAT = 0x0100,
+        IMAGE_DLLCHARACTERISTICS_NO_ISOLATION = 0x0200,
+        IMAGE_DLLCHARACTERISTICS_NO_SEH = 0x0400,
+        IMAGE_DLLCHARACTERISTICS_NO_BIND = 0x0800,
+        RES_4 = 0x1000,
+        IMAGE_DLLCHARACTERISTICS_WDM_DRIVER = 0x2000,
+        IMAGE_DLLCHARACTERISTICS_TERMINAL_SERVER_AWARE = 0x8000
     }
 
-    /// <summary>
-    /// IMAGE_EXPORT_DIRECTORY
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ImageExportDirectory
-    {
-        public uint Characteristics;
-        public uint TimeDateStamp;
-        public ushort MajorVersion;
-        public ushort MinorVersion;
-        public uint Name;
-        public uint Base;
-        public uint NumberOfFunctions;
-        public uint NumberOfNames;
-        public uint AddressOfFunctions;     // RVA from base of image
-        public uint AddressOfNames;         // RVA from base of image
-        public uint AddressOfNameOrdinals;  // RVA from base of image
-    }
-
-    /// <summary>
-    /// IMAGE_TLS_DIRECTORY
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct ImageTlsDirectory
-    {
-        public nint StartAddressOfRawData;
-        public nint EndAddressOfRawData;
-        public nint AddressOfIndex;
-        public nint AddressOfCallBacks;
-        public nint SizeOfZeroFill;
-        public uint Characteristics;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    public struct ApiSetNamespace
-    {
-        [FieldOffset(0x0C)]
-        public int Count;
-
-        [FieldOffset(0x10)]
-        public int EntryOffset;
-    }
-
-    [StructLayout(LayoutKind.Explicit, Size = 24)]
-    public struct ApiSetNamespaceEntry
-    {
-        [FieldOffset(0x04)]
-        public int NameOffset;
-
-        [FieldOffset(0x08)]
-        public int NameLength;
-
-        [FieldOffset(0x10)]
-        public int ValueOffset;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    public struct ApiSetValueEntry
-    {
-        [FieldOffset(0x0C)]
-        public int ValueOffset;
-
-        [FieldOffset(0x10)]
-        public int ValueCount;
-    }
+    #endregion
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using StealthModule.MemoryModule.Native;
+using StealthModule.MemoryModule.Native.PE;
 
 namespace StealthModule.MemoryModule
 {
