@@ -75,18 +75,14 @@ namespace StealthModule.MemoryModule
 
         protected virtual void InitializeEntryPoint()
         {
+            entryPointAddress = BaseAddress + ntHeaders.OptionalHeader.AddressOfEntryPoint;
             if (IsDll)
             {
                 // notify library about attaching to process
-                var dllEntryPtr = BaseAddress + ntHeaders.OptionalHeader.AddressOfEntryPoint;
-                wasDllMainSuccessful = functionCall.CallDllEntry(dllEntryPtr, BaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
+                entryPointAddress = BaseAddress + ntHeaders.OptionalHeader.AddressOfEntryPoint;
+                wasDllMainSuccessful = functionCall.CallDllEntry(entryPointAddress, BaseAddress, DllReason.DLL_PROCESS_ATTACH, IntPtr.Zero);
                 if (!wasDllMainSuccessful)
                     throw new ModuleException("DllMain returned false");
-            }
-            else
-            {
-                var exeEntryPtr = BaseAddress + ntHeaders.OptionalHeader.AddressOfEntryPoint;
-                exeEntryPoint = (ExeEntryDelegate)Marshal.GetDelegateForFunctionPointer(exeEntryPtr, typeof(ExeEntryDelegate));
             }
         }
 

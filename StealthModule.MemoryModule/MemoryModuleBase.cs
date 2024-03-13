@@ -16,18 +16,11 @@ namespace StealthModule.MemoryModule
         private Pointer ntHeadersAddress = Pointer.Zero;
         private ICollection<Pointer> importModuleBaseAddresses;
         private bool wasDllMainSuccessful;
-        private DllEntryDelegate dllEntryPoint;
-        private ExeEntryDelegate exeEntryPoint;
+        private Pointer entryPointAddress;
         private bool isRelocated;
 
         protected IMemoryOperator memoryOp;
         protected IFunctionCaller functionCall;
-
-        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        private delegate bool DllEntryDelegate(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
-
-        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        private delegate int ExeEntryDelegate();
 
         /// <summary>
         /// Call entry point of executable.
@@ -37,10 +30,10 @@ namespace StealthModule.MemoryModule
         {
             if (Disposed)
                 throw new ObjectDisposedException("");
-            if (IsDll || exeEntryPoint == null || !isRelocated)
+            if (IsDll || entryPointAddress == Pointer.Zero || !isRelocated)
                 throw new ModuleException("Unable to call entry point. Is loaded module a dll?");
 
-            return exeEntryPoint();
+            return functionCall.CallExeEntry(entryPointAddress);
         }
 
         /// <summary>
@@ -81,10 +74,9 @@ namespace StealthModule.MemoryModule
 
         protected virtual void UninitializeDll()
         {
-            if (wasDllMainSuccessful && dllEntryPoint != null)
+            if (IsDll && wasDllMainSuccessful && entryPointAddress != Pointer.Zero)
             {
-                dllEntryPoint.Invoke(BaseAddress, DllReason.DLL_PROCESS_DETACH, IntPtr.Zero);
-
+                functionCall.CallDllEntry(entryPointAddress, BaseAddress, DllReason.DLL_PROCESS_DETACH, Pointer.Zero);
                 wasDllMainSuccessful = false;
             }
         }

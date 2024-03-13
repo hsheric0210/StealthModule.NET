@@ -6,15 +6,24 @@ namespace StealthModule.MemoryModule.ManualMap
     public class LocalFunctionCall : IFunctionCaller
     {
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-        private delegate bool DllEntry(IntPtr hinstDLL, DllReason fdwReason, IntPtr lpReserved);
+        private delegate bool DllEntry(Pointer hinstDLL, DllReason fdwReason, Pointer lpReserved);
 
-        public bool CallDllEntry(IntPtr functionAddress, IntPtr moduleHandle, DllReason callReason, IntPtr reserved)
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        private delegate int ExeEntry();
+
+        public bool CallDllEntry(Pointer functionAddress, Pointer moduleHandle, DllReason callReason, Pointer reserved)
         {
             var call = (DllEntry)Marshal.GetDelegateForFunctionPointer(functionAddress, typeof(DllEntry));
             return call(moduleHandle, callReason, reserved);
         }
 
-        public NTSTATUS AddFunctionTable(IntPtr functionTableAddress, uint functionTableSize, IntPtr baseAddress)
+        public int CallExeEntry(Pointer functionAddress)
+        {
+            var call = (ExeEntry)Marshal.GetDelegateForFunctionPointer(functionAddress, typeof(ExeEntry));
+            return call();
+        }
+
+        public NTSTATUS AddFunctionTable(Pointer functionTableAddress, uint functionTableSize, Pointer baseAddress)
             => NativeMethods.RtlAddFunctionTable(functionTableAddress, functionTableSize, (ulong)baseAddress);
 
         public Pointer GetProcAddress(Pointer dllHandle, string functionName)

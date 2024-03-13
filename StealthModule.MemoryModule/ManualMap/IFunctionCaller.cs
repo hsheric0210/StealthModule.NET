@@ -4,9 +4,11 @@ namespace StealthModule.MemoryModule.ManualMap
 {
     public interface IFunctionCaller
     {
-        bool CallDllEntry(IntPtr functionAddress, IntPtr moduleHandle, DllReason callReason, IntPtr reserved);
+        bool CallDllEntry(Pointer functionAddress, Pointer moduleHandle, DllReason callReason, Pointer reserved);
 
-        NTSTATUS AddFunctionTable(IntPtr functionTableAddress, uint functionTableSize, IntPtr baseAddress);
+        int CallExeEntry(Pointer functionAddress);
+
+        NTSTATUS AddFunctionTable(Pointer functionTableAddress, uint functionTableSize, Pointer baseAddress);
 
         Pointer LoadLibrary(string dllName);
 
