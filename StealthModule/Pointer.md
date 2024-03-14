@@ -4,6 +4,8 @@ Simple wrapper class for IntPtr and UIntPtr to add more pointer-related features
 
 Supports auto-boxing and auto-unboxing to IntPtr, UIntPtr. Also supports auto-boxing from other integer types, unboxing to other integer types.
 
+All pointer arithmetics are handled in proper bits. In 64-bit, for example, all pointer arithmetics are handled in 64-bit integer space.
+
 ## IntPtr and UIntPtr to Pointer
 
 ```csharp
