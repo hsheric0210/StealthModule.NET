@@ -20,9 +20,11 @@ Some enhancements are applied:
 
     * Manual map core Win32 libraries to bypass API hooking and evade AV/EDR.
 
-* Use native methods in C# without any P/Invokes. (No more P/Invoke to `GetProcAddress`)
+* Use Win32 or your own DLL's native methods in C# without P/Invoke or `LoadLibrary` and `GetProcAddress`
 
-    * Make your program easy-to-obfuscate while using native method calls. (String Encryption and Resource Encryption will make your protection stronger)
+    * Make your program easy-to-obfuscate while using native method calls. (The obfuscator's String Encryption will make your protection stronger)
+
+        * You can store your own native DLL to the program resource, and then load it in-memory on runtime. (The obfuscator's Resource Encryption will also help you in this case)
 
 ## How to use
 
