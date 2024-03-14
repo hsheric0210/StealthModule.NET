@@ -19,14 +19,11 @@ namespace StealthModule
 
         public static Delegate ResolveExport(string moduleName, string exportName, Type delegateType)
             => new ExportResolver(moduleName).GetExport(exportName, delegateType);
-
-#if NET451_OR_GREATER
         public static TDelegate ResolveExport<TDelegate>(Pointer moduleBase, string exportName) where TDelegate : class
             => new ExportResolver(moduleBase).GetExport<TDelegate>(exportName);
 
         public static TDelegate ResolveExport<TDelegate>(string moduleName, string exportName) where TDelegate : class
             => new ExportResolver(moduleName).GetExport<TDelegate>(exportName);
-#endif
 
         public static Pointer ResolveExport(Pointer moduleBase, int exportOrdinal)
             => new ExportResolver(moduleBase).GetExport(exportOrdinal);
@@ -40,12 +37,10 @@ namespace StealthModule
         public static Delegate ResolveExport(string moduleName, int exportOrdinal, Type delegateType)
             => new ExportResolver(moduleName).GetExport(exportOrdinal, delegateType);
 
-#if NET451_OR_GREATER
         public static TDelegate ResolveExport<TDelegate>(Pointer moduleBase, int exportOrdinal) where TDelegate : class
             => new ExportResolver(moduleBase).GetExport<TDelegate>(exportOrdinal);
 
         public static TDelegate ResolveExport<TDelegate>(string moduleName, int exportOrdinal) where TDelegate : class
             => new ExportResolver(moduleName).GetExport<TDelegate>(exportOrdinal);
-#endif
     }
 }
