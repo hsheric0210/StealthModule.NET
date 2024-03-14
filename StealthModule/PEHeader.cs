@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 /* Unmerged change from project 'StealthModule (net8.0-windows)'
@@ -51,5 +52,21 @@ namespace StealthModule
 
             Sections = sections;
         }
+
+        public static PEHeader GetFromBytes(byte[] peData)
+        {
+            var buffer = Marshal.AllocHGlobal(peData.Length);
+            try
+            {
+                Marshal.Copy(peData, 0, buffer, peData.Length);
+                return new PEHeader(buffer);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+
+        public static PEHeader GetFromFile(string path) => GetFromBytes(File.ReadAllBytes(path));
     }
 }

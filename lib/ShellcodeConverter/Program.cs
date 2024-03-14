@@ -42,61 +42,52 @@ namespace ShellcodeConverter
             }
 
             var peBytes = File.ReadAllBytes(inputPEFile);
-            var peBuffer = Marshal.AllocHGlobal(peBytes.Length);
-            try
+            var header = PEHeader.GetFromBytes(peBytes);
+
+            var found = false;
+            ImageSectionHeader textSection = default;
+            foreach (var section in header.Sections)
             {
-                Marshal.Copy(peBytes, 0, peBuffer, peBytes.Length);
-                var header = new PEHeader(peBuffer);
-
-                var found = false;
-                ImageSectionHeader textSection = default;
-                foreach (var section in header.Sections)
+                var sectionName = Structs.LongTo8byteString(section.Name);
+                Console.WriteLine("Section: " + sectionName);
+                if (sectionName.StartsWith(".text", StringComparison.Ordinal))
                 {
-                    var sectionName = Structs.LongTo8byteString(section.Name);
-                    Console.WriteLine("Section: " + sectionName);
-                    if (sectionName.StartsWith(".text", StringComparison.Ordinal))
-                    {
-                        found = true;
-                        textSection = section;
-                        break;
-                    }
+                    found = true;
+                    textSection = section;
+                    break;
                 }
-
-                if (!found)
-                {
-                    Console.WriteLine("'.text' section not found.");
-                    return;
-                }
-
-                var lineMatcher = new Regex(@".*([\dabcdef]{8})H.*\.text(?:\$\w+)?.*\W+CODE", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
-                var mapLines = File.ReadAllLines(inputMapFile);
-                var textSectionLengthText = mapLines
-                    .Select(line => lineMatcher.Match(line))
-                    .Where(match => match.Success)
-                    .Select(match => match.Groups[1].Value)
-                    .FirstOrDefault();
-
-                Console.WriteLine("'.text' section length is " + textSectionLengthText);
-
-                if (textSectionLengthText == null || !int.TryParse(textSectionLengthText, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out var shellCodeLength))
-                {
-                    Console.WriteLine("'.text' section length is unavailable. (" + textSectionLengthText + ")");
-                    return;
-                }
-
-                var shellCode = new byte[shellCodeLength];
-                var textSectionBegin = textSection.PointerToRawData;
-                Buffer.BlockCopy(peBytes, (int)textSectionBegin, shellCode, 0, shellCodeLength);
-
-                Console.WriteLine("Shellcode extracted: offset=" + textSectionBegin + " length=" + shellCodeLength);
-
-                File.WriteAllBytes(outputFile, shellCode);
-                Console.WriteLine("Done writing to " + outputFile);
             }
-            finally
+
+            if (!found)
             {
-                Marshal.FreeHGlobal(peBuffer);
+                Console.WriteLine("'.text' section not found.");
+                return;
             }
+
+            var lineMatcher = new Regex(@".*([\dabcdef]{8})H.*\.text(?:\$\w+)?.*\W+CODE", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+            var mapLines = File.ReadAllLines(inputMapFile);
+            var textSectionLengthText = mapLines
+                .Select(line => lineMatcher.Match(line))
+                .Where(match => match.Success)
+                .Select(match => match.Groups[1].Value)
+                .FirstOrDefault();
+
+            Console.WriteLine("'.text' section length is " + textSectionLengthText);
+
+            if (textSectionLengthText == null || !int.TryParse(textSectionLengthText, NumberStyles.HexNumber, NumberFormatInfo.CurrentInfo, out var shellCodeLength))
+            {
+                Console.WriteLine("'.text' section length is unavailable. (" + textSectionLengthText + ")");
+                return;
+            }
+
+            var shellCode = new byte[shellCodeLength];
+            var textSectionBegin = textSection.PointerToRawData;
+            Buffer.BlockCopy(peBytes, (int)textSectionBegin, shellCode, 0, shellCodeLength);
+
+            Console.WriteLine("Shellcode extracted: offset=" + textSectionBegin + " length=" + shellCodeLength);
+
+            File.WriteAllBytes(outputFile, shellCode);
+            Console.WriteLine("Done writing to " + outputFile);
         }
     }
 }
