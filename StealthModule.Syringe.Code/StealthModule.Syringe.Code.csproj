@@ -29,4 +29,8 @@
     <ItemGroup>
         <ProjectReference Include="..\StealthModule\StealthModule.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Native\" />
+    </ItemGroup>
 </Project>
