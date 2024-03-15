@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StealthModule.Syringe
+namespace StealthModule.Syringe.PE
 {
-    internal class Doppelganging
+    internal class Herpaderping
     {
     }
 }

@@ -27,21 +27,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Remove="bin.netcore\**" />
-        <Compile Remove="obj.netcore\**" />
-        <EmbeddedResource Remove="bin.netcore\**" />
-        <EmbeddedResource Remove="obj.netcore\**" />
-        <None Remove="bin.netcore\**" />
-        <None Remove="obj.netcore\**" />
-        <Page Remove="bin.netcore\**" />
-        <Page Remove="obj.netcore\**" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\StealthModule\StealthModule.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Reference Include="System" />
     </ItemGroup>
 </Project>

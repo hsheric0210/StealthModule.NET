@@ -4,7 +4,7 @@ using System.Text;
 
 namespace StealthModule.Syringe
 {
-    internal class Hollowing
+    internal class CodeInject
     {
     }
 }
