@@ -64,6 +64,8 @@ namespace ShellcodeConverter
                 return;
             }
 
+            // textSection.SizeOfRawData includes the leading zero padding bytes
+            // to get the original code size, we should parse .map file
             var lineMatcher = new Regex(@".*([\dabcdef]{8})H.*\.text(?:\$\w+)?.*\W+CODE", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
             var mapLines = File.ReadAllLines(inputMapFile);
             var textSectionLengthText = mapLines
