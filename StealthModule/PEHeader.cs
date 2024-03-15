@@ -17,37 +17,54 @@ namespace StealthModule
     public class PEHeader
     {
         public Pointer BaseAddress { get; }
-        public uint NtHeadersSignature { get; }
+
         public bool Is64Bit { get; }
+
+        public ImageDosHeader DosHeader { get; }
+
+        // nt headers
+
         public ImageFileHeader FileHeader { get; }
         public ImageOptionalHeader OptionalHeader { get; }
+
+        // section headers
+
         public ImageSectionHeader[] Sections { get; }
+
+        private static class Constants
+        {
+            internal static int ImageNtHeaders_ImageFileHeader => 0x4;
+            internal static int ImageNtHeaders_ImageOptionalHeader => 0x18;
+            internal static int SectionHeaderSize => Marshal.SizeOf(typeof(ImageSectionHeader));
+        }
 
         public PEHeader(Pointer baseAddress)
         {
             BaseAddress = baseAddress;
 
-            var e_lfanew = (uint)Marshal.ReadInt32(baseAddress + 0x3c);
-            NtHeadersSignature = (uint)Marshal.ReadInt32(baseAddress + e_lfanew);
+            DosHeader = baseAddress.Read<ImageDosHeader>();
+
+            var ntHeadersAddress = baseAddress + DosHeader.e_lfanew;
+            var ntHeadersSignature = ntHeadersAddress.Read<uint>();
 
             // Validate PE signature
-            if (NtHeadersSignature != NativeMagics.IMAGE_NT_SIGNATURE)
+            if (ntHeadersSignature != NativeMagics.IMAGE_NT_SIGNATURE)
                 throw new InvalidOperationException("Invalid PE signature.");
 
-            FileHeader = (ImageFileHeader)Marshal.PtrToStructure(baseAddress + e_lfanew + 0x4, typeof(ImageFileHeader));
+            FileHeader = (baseAddress + DosHeader.e_lfanew + Constants.ImageNtHeaders_ImageFileHeader).Read<ImageFileHeader>();
 
-            var optHeaderAddress = baseAddress + e_lfanew + 0x18;
-            OptionalHeader = (ImageOptionalHeader)Marshal.PtrToStructure(optHeaderAddress, typeof(ImageOptionalHeader));
+            var optHeaderAddress = baseAddress + DosHeader.e_lfanew + Constants.ImageNtHeaders_ImageOptionalHeader;
+            OptionalHeader = optHeaderAddress.Read<ImageOptionalHeader>();
 
-            var optHeaderMagic = (ushort)Marshal.ReadInt16(optHeaderAddress);
-            Is64Bit = optHeaderMagic == (uint)NtOptionalHeaderMagic.Header64Magic;
+            var optHeaderMagic = optHeaderAddress.Read<ushort>();
+            Is64Bit = optHeaderMagic == (ushort)NtOptionalHeaderMagic.Header64Magic;
 
             // Read sections
             var sections = new ImageSectionHeader[FileHeader.NumberOfSections];
             for (var i = 0; i < sections.Length; i++)
             {
-                var sectionHeaderAddress = optHeaderAddress + FileHeader.SizeOfOptionalHeader + (uint)(i * 0x28);
-                sections[i] = (ImageSectionHeader)Marshal.PtrToStructure(sectionHeaderAddress, typeof(ImageSectionHeader));
+                var sectionHeaderAddress = optHeaderAddress + FileHeader.SizeOfOptionalHeader + (uint)(i * Constants.SectionHeaderSize);
+                sections[i] = sectionHeaderAddress.Read<ImageSectionHeader>();
             }
 
             Sections = sections;
